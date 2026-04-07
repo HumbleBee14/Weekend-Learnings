@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Rust
+target/
+
+# JavaScript / TypeScript
+node_modules/
+dist/
+.next/
+.nuxt/
+*.tsbuildinfo
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+build/
+.settings/
+bin/
+
+# C / C++
+*.o
+*.obj
+*.exe
+*.out
+*.dll
+*.so
+*.dylib
+
+# Go
+bin/
+*.exe
+
+# .NET / C#
+bin/
+obj/
+*.dll
+
+# SQL
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / Secrets
+.env
+.env.local
