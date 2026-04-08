@@ -49,11 +49,60 @@ pip freeze > requirements.txt
 pip install -r requirements.txt
 ```
 
-## Exercises
+## Structure
 
-| # | Exercise | Description |
-|---|----------|-------------|
-| 01 | tensors-basics | Tensors, shapes, dtypes, operations — the foundation of everything |
+```
+python-pytorch/
+│
+├── level-1-foundation/
+│   ├── 00-tensor-basics.ipynb          ← tensors, shapes, dtypes, devices, indexing
+│   ├── 01-autograd.ipynb               ← gradients, backward, zero_grad, no_grad
+│   └── 02-math-operations.ipynb        ← matmul, dot, softmax, norm, broadcasting
+│
+├── level-2-building-models/
+│   ├── 01-nn-module.ipynb              ← nn.Module, forward(), parameters(), train/eval
+│   ├── 02-layers-and-activations.ipynb ← Linear, Embedding, LayerNorm, ReLU, GELU, SiLU
+│   ├── 03-forward-pass.ipynb           ← shape tracing, debug hooks, model(x) internals
+│   └── 04-loss-functions.ipynb         ← MSELoss, CrossEntropyLoss, BCEWithLogitsLoss
+│
+├── level-3-training/
+│   ├── 01-dataloader-dataset.ipynb     ← Dataset class, DataLoader, batching, shuffling
+│   ├── 02-backpropagation.ipynb        ← chain rule, vanishing gradients, residual fix
+│   ├── 03-optimizer.ipynb              ← SGD, Adam, AdamW, lr schedulers
+│   ├── 04-training-loop.ipynb          ← the 5-step core loop, train/val split
+│   └── 05-evaluation-and-metrics.ipynb ← perplexity, precision/recall/F1, early stopping
+│
+├── level-4-architectures/
+│   ├── 01-mlp.ipynb                    ← MNIST, Flatten, Dropout, train/eval loop
+│   ├── 02-cnn.ipynb                    ← Conv2d, MaxPool2d, feature maps, image classification
+│   ├── 03-rnn-lstm.ipynb               ← RNN, LSTM gates, vanishing gradient, sequence tasks
+│   └── 04-transformer.ipynb            ← self-attention, multi-head, full MiniGPT from scratch
+│
+├── level-5-llm-finetuning/
+│   ├── 01-huggingface-basics.ipynb     ← tokenizer, AutoModel, generation, pipeline
+│   ├── 02-hf-datasets-dataloader.ipynb ← HF datasets, tokenization, SFT/DPO/GRPO data formats
+│   ├── 03-mixed-precision.ipynb        ← float16/bfloat16, autocast, GradScaler
+│   ├── 04-lora-qlora.ipynb             ← LoRA math from scratch, PEFT library, 4-bit QLoRA
+│   └── 05-sft-dpo-grpo.ipynb           ← SFT, DPO, GRPO with TRL — the post-training stack
+│
+└── level-6-research-papers/
+    ├── 01-flash-attention.ipynb        ← tiled attention, online softmax, O(N) memory
+    ├── 02-rope-embeddings.ipynb        ← rotary position, relative distance, LLaMA/Mistral style
+    ├── 03-grouped-query-attention.ipynb← GQA vs MHA vs MQA, KV cache size tradeoffs
+    ├── 04-kv-cache.ipynb               ← prefill vs decode, cache implementation, speedup
+    ├── 05-mixture-of-experts.ipynb     ← router, top-K dispatch, load balancing loss
+    └── 06-mamba-ssm.ipynb              ← state space models, selective SSM, O(N) vs O(N²)
+```
+
+## Colab GPU requirements by level
+
+| Level | CPU ok? | Colab T4 | Notes |
+|---|---|---|---|
+| 1-3 | Yes | Not needed | Pure PyTorch, small data |
+| 4 | Yes (slow) | Recommended | MNIST trains fast on CPU too |
+| 5 | No | Required | LLM loading needs GPU |
+| 6 (conceptual) | Yes | Not needed | Algorithm understanding |
+| 6 (real perf) | No | Required | Flash Attention needs CUDA |
 
 ## Resources
 

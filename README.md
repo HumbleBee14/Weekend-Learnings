@@ -1,32 +1,48 @@
-# Personal Manual Learnings
+# Personal Learnings
 
-Manual coding practice to keep skills sharp in the age of AI.
+A personal notebook for trying new things, refreshing fundamentals, and keeping all learning notes in one place.
 
-## Topics
 
-| Folder | What | Status |
-|--------|------|--------|
-| [python-fastapi](python-fastapi/) | FastAPI web framework | Getting started |
-| [python-pytorch](python-pytorch/) | PyTorch deep learning framework | Getting started |
-| [rust-basics](rust-basics/) | Rust language fundamentals | Getting started |
-| [sql-practice](sql-practice/) | SQL queries and concepts | Getting started |
+```                       
+        _..._             
+      .'     '.      _    
+     /    .-""-\   _/ \   
+   .-|   /:.   |  |   |   
+   |  \  |:.   /.-'-./    
+   | .-'-;:__.'    =/     
+   .'=  *=|     _.='      
+  /   _.  |    ;          
+ ;-.-'|    \   |          
+/   | \    _\  _\         
+\__/'._;.  ==' ==\        
+         \    \   |       
+         /    /   /       
+         /-._/-._/        
+         \   `\  \        
+          `-._/._/        
+                          
 
-## Why PyTorch?
+                                             ___     
+                                          ,o88888    
+                                       ,o8888888'    
+                 ,:o:o:oooo.        ,8O88Pd8888"     
+             ,.::.::o:ooooOoOoO. ,oO8O8Pd888'"       
+           ,.:.::o:ooOoOoOO8O8OOo.8OOPd8O8O"         
+          , ..:.::o:ooOoOOOO8OOOOo.FdO8O8"           
+         , ..:.::o:ooOoOO8O888O8O,COCOO"             
+        , . ..:.::o:ooOoOOOO8OOOOCOCO"               
+         . ..:.::o:ooOoOoOO8O8OCCCC"o                
+            . ..:.::o:ooooOoCoCCC"o:o                
+            . ..:.::o:o:,cooooCo"oo:o:               
+         `   . . ..:.:cocoooo"'o:o:::'               
+         .`   . ..::ccccoc"'o:o:o:::'                
+        :.:.    ,c:cccc"':.:.:.:.:.'                 
+      ..:.:"'`::::c:"'..:.:.:.:.:.'                  
+    ...:.'.:.::::"'    . . . . .'                    
+   .. . ....:."' `   .  . . ''                       
+ . . . ...."'                                        
+ .. . ."'                                            
+.                                                    
+                                                     
+```
 
-PyTorch is the foundation underneath almost everything in modern AI/ML:
-
-| Area | PyTorch's role | Key libraries built on it |
-|------|---------------|--------------------------|
-| Deep learning (CNNs, RNNs, Transformers) | Core framework — you write models directly | torchvision, torchaudio |
-| LLM pre-training (GPT, LLaMA, Mistral) | Models are built and trained in PyTorch | Megatron-LM, LitGPT |
-| LLM fine-tuning (LoRA, QLoRA, SFT) | All fine-tuning runs on PyTorch tensors | HuggingFace Transformers, PEFT, Unsloth |
-| LLM post-training (DPO, PPO, GRPO) | Alignment/preference training | TRL (Transformer Reinforcement Learning) |
-| RLHF (Reinforcement Learning from Human Feedback) | Reward models + PPO training loop | TRL, DeepSpeed-Chat |
-| Reinforcement learning (general) | Policy networks, value functions | Stable-Baselines3, CleanRL |
-| Computer vision | Image classification, detection, segmentation | torchvision, Detectron2, YOLO |
-| Audio / Speech | ASR, TTS, audio classification | torchaudio, Whisper |
-| Diffusion models (image generation) | Stable Diffusion, DALL-E | diffusers (HuggingFace) |
-| Graph neural networks | Node/edge prediction, molecular modeling | PyG (PyTorch Geometric) |
-| Scientific computing | Physics simulations, differential equations | torchdiffeq, PyTorch Lightning |
-| Model serving / deployment | Export and serve trained models | TorchServe, ONNX, vLLM |
-| Distributed training | Multi-GPU, multi-node training | PyTorch FSDP, DeepSpeed, Accelerate |
