@@ -1,15 +1,6 @@
-# Personal Manual Learnings
+# Python - PyTorch
 
-Manual coding practice to keep skills sharp in the age of AI.
-
-## Topics
-
-| Folder | What | Status |
-|--------|------|--------|
-| [python-fastapi](python-fastapi/) | FastAPI web framework | Getting started |
-| [python-pytorch](python-pytorch/) | PyTorch deep learning framework | Getting started |
-| [rust-basics](rust-basics/) | Rust language fundamentals | Getting started |
-| [sql-practice](sql-practice/) | SQL queries and concepts | Getting started |
+Learning PyTorch from scratch for deep learning, LLM fine-tuning, and post-training.
 
 ## Why PyTorch?
 
@@ -30,3 +21,42 @@ PyTorch is the foundation underneath almost everything in modern AI/ML:
 | Scientific computing | Physics simulations, differential equations | torchdiffeq, PyTorch Lightning |
 | Model serving / deployment | Export and serve trained models | TorchServe, ONNX, vLLM |
 | Distributed training | Multi-GPU, multi-node training | PyTorch FSDP, DeepSpeed, Accelerate |
+
+## Setup
+
+```bash
+cd python-pytorch
+python -m venv .venv
+source .venv/Scripts/activate   # Windows Git Bash
+
+# CPU only (lighter, good for learning)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# With CUDA (if you have NVIDIA GPU)
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+```
+
+## Common Commands
+
+```bash
+# Verify installation
+python -c "import torch; print(torch.__version__); print('CUDA:', torch.cuda.is_available())"
+
+# Freeze dependencies
+pip freeze > requirements.txt
+
+# Install from requirements
+pip install -r requirements.txt
+```
+
+## Exercises
+
+| # | Exercise | Description |
+|---|----------|-------------|
+| 01 | tensors-basics | Tensors, shapes, dtypes, operations — the foundation of everything |
+
+## Resources
+
+- [PyTorch Official Tutorials](https://pytorch.org/tutorials/)
+- [PyTorch Docs](https://pytorch.org/docs/stable/index.html)
+- [Andrej Karpathy — Neural Networks: Zero to Hero](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ)

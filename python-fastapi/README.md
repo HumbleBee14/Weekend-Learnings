@@ -46,11 +46,7 @@ fastapi run main.py
 
 Under the hood this is still Uvicorn — just a convenience wrapper with dev-friendly defaults.
 
-## Exercises
 
-| # | Exercise | Description |
-|---|----------|-------------|
-| 01 | hello-world | Basic app, first endpoint, running uvicorn |
 
 ## Resources
 

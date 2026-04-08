@@ -35,11 +35,37 @@ Think of it like this:
 | Java | Servlet API (Tomcat ↔ Spring MVC), Reactive Streams (Netty ↔ WebFlux) |
 | Node.js | No formal spec needed — everything is async by default |
 
-### Why does ASGI exist?
+### ASGI vs WSGI
 
-Python's old standard, WSGI, was **synchronous** — one request = one thread blocked until response. Like old-school Spring MVC on Tomcat with blocking I/O.
+WSGI (Web Server Gateway Interface) was Python's original standard. It's **synchronous** — each request gets a thread, that thread blocks until the response is ready, then moves on. No WebSockets, no long-lived connections, no concurrency within a single thread.
 
-ASGI enables **async** — like Spring WebFlux or how Node.js handles requests natively. Your FastAPI endpoint can `await` a DB call without blocking the thread.
+ASGI (Asynchronous Server Gateway Interface) is its successor. It's **asynchronous** — a single thread can handle thousands of concurrent connections by switching between them at `await` points. This enables:
+
+- **Non-blocking I/O** — while waiting for a DB query or external API, the server handles other requests
+- **WebSockets** — long-lived bidirectional connections (impossible with WSGI)
+- **Server-Sent Events** — streaming responses
+- **Better throughput** — fewer threads doing more work
+
+```
+WSGI (Flask, old Django):
+  Request 1 ████████████░░░░░░░░ (thread 1 blocked on DB)
+  Request 2 ░░░░░░░░░░░░████████ (thread 2 waits for thread 1 to free up)
+  → sequential, one at a time per thread
+
+ASGI (FastAPI, Django 3+):
+  Request 1 ████░░░░████░░░░████ (event loop: work, await, work, await, work)
+  Request 2 ░░░░████░░░░████░░░░ (fills in the gaps while Req 1 awaits)
+  → concurrent, interleaved on one thread
+```
+
+| | WSGI | ASGI |
+|---|---|---|
+| Model | Thread-per-request (like Tomcat) | Event loop (like Node.js) |
+| Concurrency | Limited by thread pool size | Thousands on a single thread |
+| WebSockets | Not supported | Supported |
+| Frameworks | Flask, Django (traditional) | FastAPI, Django 3+ (async views) |
+| Java equivalent | Servlet API (blocking) | Reactive Streams / Netty (non-blocking) |
+| Node equivalent | — | Native model (Node is async by default) |
 
 ```python
 # WSGI world (Flask) — blocks the thread while waiting for DB
