@@ -76,7 +76,8 @@ python-pytorch/
 │   ├── 01-mlp.ipynb                    ← MNIST, Flatten, Dropout, train/eval loop
 │   ├── 02-cnn.ipynb                    ← Conv2d, MaxPool2d, feature maps, image classification
 │   ├── 03-rnn-lstm.ipynb               ← RNN, LSTM gates, vanishing gradient, sequence tasks
-│   └── 04-transformer.ipynb            ← self-attention, multi-head, full MiniGPT from scratch
+│   ├── 04-transformer.ipynb            ← self-attention, multi-head, MiniGPT, autoregressive gen, sampling
+│   └── 05-train-minigpt-shakespeare.ipynb ← train MiniGPT on real text, generate Shakespeare
 │
 ├── level-5-llm-finetuning/
 │   ├── 01-huggingface-basics.ipynb     ← tokenizer, AutoModel, generation, pipeline
@@ -85,13 +86,18 @@ python-pytorch/
 │   ├── 04-lora-qlora.ipynb             ← LoRA math from scratch, PEFT library, 4-bit QLoRA
 │   └── 05-sft-dpo-grpo.ipynb           ← SFT, DPO, GRPO with TRL — the post-training stack
 │
-└── level-6-research-papers/
-    ├── 01-flash-attention.ipynb        ← tiled attention, online softmax, O(N) memory
-    ├── 02-rope-embeddings.ipynb        ← rotary position, relative distance, LLaMA/Mistral style
-    ├── 03-grouped-query-attention.ipynb← GQA vs MHA vs MQA, KV cache size tradeoffs
-    ├── 04-kv-cache.ipynb               ← prefill vs decode, cache implementation, speedup
-    ├── 05-mixture-of-experts.ipynb     ← router, top-K dispatch, load balancing loss
-    └── 06-mamba-ssm.ipynb              ← state space models, selective SSM, O(N) vs O(N²)
+├── level-6-research-papers/
+│   ├── 01-flash-attention.ipynb        ← tiled attention, online softmax, O(N) memory
+│   ├── 02-rope-embeddings.ipynb        ← rotary position, relative distance, LLaMA/Mistral style
+│   ├── 03-grouped-query-attention.ipynb← GQA vs MHA vs MQA, KV cache size tradeoffs
+│   ├── 04-kv-cache.ipynb               ← prefill vs decode, cache implementation, speedup
+│   ├── 05-mixture-of-experts.ipynb     ← router, top-K dispatch, load balancing loss
+│   ├── 06-mamba-ssm.ipynb              ← state space models, selective SSM, O(N) vs O(N²)
+│   └── 07-turboquant.ipynb             ← KV cache quantization, PolarQuant, QJL, ICLR 2026
+│
+└── level-7-pytorch-systems/
+    ├── 01-torch-profiler.ipynb         ← profile ops, find bottlenecks, chrome trace, memory tracking
+    └── 02-distributed-data-parallel.ipynb ← DDP, all-reduce, DistributedSampler, torchrun
 ```
 
 ## Colab GPU requirements by level
@@ -103,6 +109,7 @@ python-pytorch/
 | 5 | No | Required | LLM loading needs GPU |
 | 6 (conceptual) | Yes | Not needed | Algorithm understanding |
 | 6 (real perf) | No | Required | Flash Attention needs CUDA |
+| 7 | Yes (profiler) | Recommended (DDP) | Profiling works on CPU, DDP needs multi-process |
 
 ## Resources
 
