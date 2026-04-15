@@ -61,3 +61,4 @@ Thumbs.db
 # Environment / Secrets
 .env
 .env.local
+python-pytorch/plan.md
