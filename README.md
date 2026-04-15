@@ -1,16 +1,7 @@
-# Personal Learnings
+# Weekend Learning Space
 
 A personal notebook for trying new things, refreshing fundamentals, and keeping all learning notes in one place.
 
-## Topics
-
-| Folder | What's inside |
-|--------|--------------|
-| [python-fastapi/](python-fastapi/) | FastAPI, ASGI, Pydantic, async/await |
-| [python-pytorch/](python-pytorch/) | PyTorch from tensors → transformers → LLM fine-tuning → research papers |
-| [systems-for-ml/](systems-for-ml/) | LLM inference serving, CUDA/GPU programming, profiling, distributed training, ML platform design |
-| [rust-basics/](rust-basics/) | Rust fundamentals |
-| [sql-practice/](sql-practice/) | SQL queries practice |
 
 
 ```                       
