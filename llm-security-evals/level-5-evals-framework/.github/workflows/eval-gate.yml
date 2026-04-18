@@ -1,0 +1,18 @@
+# GitHub Actions: LLM Eval Quality Gate
+# Blocks PR merge if eval scores drop below threshold
+---
+name: LLM Eval Gate
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ --tb=short
+        # TODO: add quality gate thresholds

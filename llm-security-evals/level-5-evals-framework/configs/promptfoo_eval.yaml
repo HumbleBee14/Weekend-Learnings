@@ -1,0 +1,6 @@
+# Promptfoo evaluation configuration
+# Run: promptfoo eval -c configs/promptfoo_eval.yaml
+---
+prompts: []
+providers: []
+tests: []

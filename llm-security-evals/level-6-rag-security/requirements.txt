@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+openai
+chromadb
+langchain
+langchain-openai
+llm-guard
+pydantic
+pytest

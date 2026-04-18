@@ -1,0 +1,6 @@
+openai
+anthropic
+pydantic
+mcp
+httpx
+pytest
