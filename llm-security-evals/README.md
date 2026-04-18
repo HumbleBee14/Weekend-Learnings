@@ -2,18 +2,14 @@
 
 Learning LLM security, red-teaming, evaluation frameworks, and AI governance — from attack fundamentals to production-grade defense systems.
 
-## Why This Matters (2026)
+## Why This Matters
 
-This is **the** highest-demand skill gap in AI engineering right now:
+LLMs are being deployed everywhere, but most systems are wide open:
 
-| Signal | Data point |
-|--------|-----------|
-| Attack surface | 73% of production AI deployments have prompt injection vulnerabilities |
-| Incidents | 520 tool-misuse incidents in 2026 alone (340% increase from 2024) |
-| Salary premium | AI security engineers earn 43% more than traditional security roles |
-| Supply gap | 1.3M AI job openings in US, fewer than 645K qualified candidates |
-| Regulation | EU AI Act enforcement begins August 2026 — fines up to 7% of global revenue |
-| Market signal | Lakera acquired by Check Point, Protect AI by Palo Alto Networks (2025) |
+- 73% of production AI deployments have prompt injection vulnerabilities
+- 5 poisoned documents in a RAG pipeline can flip 90% of responses
+- Agents with tool access can be tricked into executing unauthorized actions
+- EU AI Act enforcement begins August 2026 — compliance is now a hard requirement
 
 ## What You'll Build
 
@@ -27,9 +23,7 @@ By the end of this learning, we'll have built:
 6. **A secure agent system** — with tool sandboxing and privilege boundaries
 7. **A governance dashboard** — compliance checks mapped to OWASP + EU AI Act
 
-## The Industry Toolbox
-
-These are the tools we actually use — **25+ production tools** across the full stack:
+## Tools Covered
 
 ### Red-Teaming & Offensive (5 tools)
 
@@ -295,12 +289,6 @@ llm-security-evals/
 - "MCP Threat Modeling and Tool Poisoning" (arXiv:2603.22489)
 - "PoisonedRAG" (USENIX Security 2025)
 - "LLMs-as-Judges: A Comprehensive Survey" (arXiv:2412.05579)
-
-### Certifications (when ready)
-- **CAISP** — Certified AI Security Professional (Practical DevSecOps) — 15-20% salary premium
-- **OSAI+** — Advanced AI Red Teaming (OffSec) — hands-on, lab-based
-- **CompTIA SecAI+** — vendor-neutral AI security
-- **SANS GOAA** — GIAC Offensive AI Analyst (new 2026)
 
 ## Resources
 
