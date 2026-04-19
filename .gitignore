@@ -28,6 +28,7 @@ build/
 .settings/
 bin/
 target/
+logs/
 *.log
 hs_err_pid*
 
