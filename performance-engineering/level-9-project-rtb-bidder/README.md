@@ -62,13 +62,15 @@ Build a real-time bidding engine that responds to bid requests in <10ms p99 at 1
 
 | Phase | Budget | Java actual | C++/Rust actual |
 |-------|--------|-------------|-----------------|
-| HTTP parsing | 1ms | ~2-3ms (Spring + Jackson) | ~0.1-0.5ms (simdjson/hyper) |
-| User segment lookup | 1ms | ~3-5ms (HashMap boxing) | ~0.1-0.3ms (Roaring Bitmap) |
-| Feature lookup | 1ms | ~1-2ms (HashMap chaining) | ~0.1-0.3ms (flat_hash_map) |
-| ML inference | 3ms | N/A | ~1-5ms (ONNX Runtime) |
-| Budget check | 0.5ms | ~1-2ms (synchronized) | ~0.01ms (atomic) |
-| Response serialization | 1ms | ~2-3ms (Jackson) | ~0.1-0.5ms (manual) |
-| **Total** | **<10ms** | **~10-15ms (optimistic), 30-50ms p99 with GC** | **~2-7ms** |
+| HTTP parsing | 1ms | ~2-3ms (Spring + Jackson ObjectMapper) | ~0.5ms (Vert.x + Jackson Streaming) | ~0.1-0.5ms (simdjson/hyper) |
+| User segment lookup | 1ms | ~3-5ms (HashMap boxing) | ~1ms (Redis SISMEMBER via Lettuce) | ~0.1-0.3ms (Roaring Bitmap) |
+| Feature lookup | 1ms | ~1-2ms (HashMap chaining) | ~0.5ms (Redis or in-process cache) | ~0.1-0.3ms (flat_hash_map) |
+| ML inference | 3ms | N/A | ~3-5ms (ONNX via Panama FFI) | ~1-5ms (ONNX Runtime native) |
+| Budget check | 0.5ms | ~1-2ms (synchronized) | ~0.01ms (AtomicLong) | ~0.01ms (atomic) |
+| Response serialization | 1ms | ~2-3ms (Jackson ObjectMapper) | ~0.3ms (Jackson Streaming / JsonGenerator) | ~0.1-0.5ms (manual) |
+| **Total** | **<10ms** | **~10-15ms (Spring), 30-50ms p99 with G1 GC** | **~5-10ms, <15ms p99 with ZGC** | **~2-7ms** |
+
+> Note: "Java optimized" column = Java 21+ with Vert.x, Virtual Threads, ZGC, Jackson Streaming, Lettuce async Redis — the version we build first. "Java Spring baseline" = typical Spring Boot for comparison later.
 
 ## Project Structure
 
