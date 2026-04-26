@@ -220,6 +220,16 @@ bumping Lettuce connections is the cheapest path.
 
 ---
 
+## What was tried and didn't work (negative results worth keeping)
+
+| Experiment | Result | Reason |
+|---|---|---|
+| Pre-size ArrayLists / HashSets in pipeline stages | Within run-to-run noise | JFR showed dominant `ArrayList.grow` callers are inside Vert.x `executeBlocking` and Lettuce response decoders — framework code we don't control. Our code paths weren't the actual hotspot. |
+| Heap 2g → 4g | Bid_rate at 25K dropped 16.46% → 10.25% | `AlwaysPreTouch` on 4g steals page cache from Docker containers; ZGC concurrent phases scan more memory and compete with bidder workers for CPU on a CPU-saturated host. |
+| Lettuce connections 4 → 8 | Bid_rate at 25K dropped 16.46% → 1.84% | 24 total nio threads + 72 Vert.x workers on 12 cores → kernel scheduler thrashing. Past the parallelism sweet spot, more threads cost more than they add. |
+
+Lesson: at 25K we're CPU-saturated at the system level. Adding more parallelism, more memory, or more pre-allocation doesn't help — these only help below saturation. Past it, every additional resource competes with the foreground request-serving work.
+
 ## Verdict on Run 5.2
 
 **Real architectural improvement, validated by both load tests AND JFR:**
