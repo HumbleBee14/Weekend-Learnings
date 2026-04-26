@@ -1,4 +1,4 @@
-# Load Test Results — Run 5 (vectorised segment matching + scoring)
+# Load Test Results — Run 5.1 (vectorised segment matching + scoring)
 
 Run 4 closed at a hard SLA-bound ceiling of ~15K RPS on this single-machine
 setup. JFR analysis after Run 4 surfaced the top hot methods on the bidder's
@@ -7,13 +7,13 @@ worker threads: `FeatureWeightedScorer.computeRelevance` (978 samples),
 (521 samples) — all variations of the same operation: counting how many
 elements two `Set<String>` collections have in common.
 
-Run 5 replaces that string-set intersection with a 64-bit bitmap intersection.
+Run 5.1 replaces that string-set intersection with a 64-bit bitmap intersection.
 Same correctness, dramatically less CPU per call, applied at both call sites
 (targeting and scoring) in one change.
 
 ---
 
-## What changed between Run 4 and Run 5
+## What changed between Run 4 and Run 5.1
 
 | # | Change | Why |
 |---|---|---|
@@ -106,22 +106,22 @@ unchanged.
 
 ---
 
-## Results — Run 4 vs Run 5
+## Results — Run 4 vs Run 5.1
 
-All three intermediate rates re-tested with Run 5. Listed in order of
+All three intermediate rates re-tested with Run 5.1. Listed in order of
 ascending RPS so the interesting rates (15K → 20K → 25K) are visible
 together.
 
 ### 5K, 10K, 15K — already had headroom in Run 4
 
-These rates were comfortably under SLA in Run 4 already. Run 5 produces
+These rates were comfortably under SLA in Run 4 already. Run 5.1 produces
 near-identical numbers (same headroom, no measurable improvement because the
 bidder wasn't CPU-bound at these rates). Reported here for completeness — the
 real movement is at the higher rates below.
 
-### 20K RPS — the big Run 5 win
+### 20K RPS — the big Run 5.1 win
 
-| Metric | Run 4 | Run 5 | Change |
+| Metric | Run 4 | Run 5.1 | Change |
 |---|---|---|---|
 | p50 (measure) | 52.46 ms ✗ | **45.07 ms** ✗ | −14% |
 | p95 | 57.67 ms ✗ | **52.83 ms** ✗ | −8% |
@@ -134,7 +134,7 @@ real movement is at the higher rates below.
 
 **The bid-rate jump is the headline number.** Run 4 at 20K was fundamentally
 choking — only 3.86% of requests produced a real bid; 96% timed out at the
-50 ms SLA boundary. Run 5 turns 20K from "system overwhelmed" into "system
+50 ms SLA boundary. Run 5.1 turns 20K from "system overwhelmed" into "system
 serving most requests," with the average request finishing 22 ms faster.
 
 p99 came within **4 ms of crossing the 50 ms SLA threshold** (54 vs 50). Not
@@ -142,7 +142,7 @@ yet a clean pass, but materially closer than Run 4's 13 ms gap.
 
 ### 25K RPS — tail dramatically tighter, raw rate still wins
 
-| Metric | Run 4 | Run 5 | Change |
+| Metric | Run 4 | Run 5.1 | Change |
 |---|---|---|---|
 | p50 (measure) | 52.61 ms ✗ | 51.56 ms ✗ | minimal |
 | p95 | 63.67 ms ✗ | **54.03 ms** ✗ | −15% |
@@ -165,13 +165,13 @@ not a code-level fix.
 
 ### Rolled-up SLA-bound ceiling
 
-| Tier | Run 4 | Run 5 |
+| Tier | Run 4 | Run 5.1 |
 |---|---|---|
 | 5K, 10K, 15K | ✓ | ✓ |
 | 20K | ✗ p99 13 ms over | ✗ p99 4 ms over (close) |
 | 25K | ✗ full collapse | ✗ tail bounded, rate still rig-limited |
 
-Run 5 didn't change the absolute single-machine ceiling, but it materially
+Run 5.1 didn't change the absolute single-machine ceiling, but it materially
 shrank the gap at 20K and bounded the tail at 25K. With one more lever
 (see "What the JFR points at next" below) 20K is plausibly reachable.
 
@@ -179,7 +179,7 @@ shrank the gap at 20K and bounded the tail at 25K. With one more lever
 
 ## JFR analysis — same workload, different bottleneck
 
-JFR recording captured during a 25K Run 5 stress test. CPU samples below.
+JFR recording captured during a 25K Run 5.1 stress test. CPU samples below.
 
 ### Top hot methods, ranked
 
@@ -201,11 +201,11 @@ samples  method
  250     java.lang.String.charAt
 ```
 
-### What's gone (proves Run 5 worked)
+### What's gone (proves Run 5.1 worked)
 
 The Run 4 top three hot methods were:
 
-| Method | Run 4 | Run 5 |
+| Method | Run 4 | Run 5.1 |
 |---|---|---|
 | `FeatureWeightedScorer.computeRelevance` | 978 | not in top 50 |
 | `HashMap.containsKey` (from set intersection) | 901 | not in top 50 |
@@ -258,7 +258,7 @@ Top-K with a min-heap is `O(N log K)` instead of `O(N log N)`:
 Same output (top-32 by `value_per_click` is identical regardless of the
 algorithm used to find them). One-file change to `CandidateLimitStage`.
 
-This is the proposed Run 6 work. Expected to close the remaining 4 ms p99
+This is the proposed Run 5.2 work. Expected to close the remaining 4 ms p99
 gap at 20K and further bound the 25K tail.
 
 ### Other JFR-derived, smaller wins to keep on the list
