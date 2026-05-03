@@ -6,31 +6,36 @@ This is NOT PyTorch. This is about the **systems** built on top of PyTorch to tr
 
 ## Who needs this
 
-If you want to work on:
-- LLM inference infrastructure (vLLM / SGLang / TensorRT-LLM / TGI / llama.cpp)
-- Training platforms (RLHF / RLXF / post-training systems)
-- GPU performance engineering (CUDA, Triton, kernel work)
-- ML platform / MLOps at scale (multi-tenant serving, autoscaling, cost)
-- **Local / on-device intelligence** (Apple Silicon + MLX, GGUF, agentic IDEs)
-- AI Performance / AI Systems Engineer roles
+This curriculum is for the curiosity-driven learner who wants to *understand* how modern LLM systems actually work — by building each layer themselves.
 
-You'll also leave with **awareness** of the compiler stack (MLIR / LLVM / `torch.compile` internals) — enough to decide whether to specialize there as a separate, deeper track later.
+What you'll explore:
+- LLM inference infrastructure (vLLM / SGLang / TensorRT-LLM / llama.cpp / NVIDIA Dynamo / llm-d)
+- Distributed training (FSDP2, Megatron-Core, torchtitan; RLHF / GRPO / DPO with verl / OpenRLHF / NeMo-RL)
+- GPU performance engineering (CUDA, Triton, CUTLASS / CuTe DSL)
+- Production-shaped platforms (KubeRay, vLLM Production Stack, KEDA, Envoy AI Gateway, OpenTelemetry GenAI)
+- **Local / on-device intelligence** (Apple Silicon + MLX, M5 Neural Accelerators, Foundation Models framework, agentic local stacks)
 
-...this is the curriculum. These are the same job postings you see at Anthropic, OpenAI, Meta, Databricks, Together, Fireworks, Anyscale, Baseten, Modal, plus every Fortune 500 building internal AI platforms — *and* the wave of local-first / on-device AI startups (Ollama, LM Studio, agentic IDE companies, private-AI vendors) hiring for the same skills minus the datacenter.
+You'll also leave with **awareness** of the compiler stack (MLIR / LLVM / `torch.compile` internals) — enough to decide whether to dive into that world separately.
+
+> **On languages.** The curriculum is Python-first. Rust shows up in Level 7 because it's increasingly the production reality for gateways and routers. C++ remains essential for kernel work. Pick up what the project needs, when it needs it.
+
+The point of this curriculum isn't a credential — it's that *you actually understand the substrate* the field runs on. The same depth that makes a system fast is what makes it interesting.
 
 ## The two paths the field is splitting into
 
 ```
-Frontier scale (datacenter)        Local scale (on-device)
-────────────────────────           ─────────────────────────
-vLLM / SGLang / TRT-LLM            llama.cpp / MLX / GGUF
-H100 / B200 clusters               M-series unified memory, consumer GPUs
-3D parallelism, NCCL, FSDP         Aggressive quantization (4/3/1.58-bit)
-$/Mtok at fleet scale              Zero-latency, zero-API-cost agents
-RLHF at scale                      QLoRA + local DPO personalization
+Frontier scale (datacenter)               Local scale (on-device)
+────────────────────────                  ─────────────────────────
+vLLM / SGLang / TRT-LLM / Dynamo / llm-d  llama.cpp / MLX / vLLM-MLX / Ollama
+H100 / B200 / GB300 NVL72                 M5 Pro/Max/Ultra (Neural Accelerators)
+5D parallelism (TP+PP+DP+EP+CP), FSDP2    KV cache quantization (4-bit), MoE
+NCCL 2.27 + SHARP + Communicator Shrink   Foundation Models framework + adapters
+$/Mtok at fleet scale, FinOps for AI      Zero-latency, zero-API-cost agents
+GRPO/PPO/DPO with verl/OpenRLHF/NeMo-RL   QLoRA + local DPO/GRPO personalization
+KV-cache-aware routing, NIXL, LMCache     exo / Thunderbolt 5 distributed Macs
 ```
 
-Most curricula teach only the left column. This one covers both, because the job market now hires for both — and the same engineer who can tune vLLM on an H100 is the one a local-AI startup wants tuning llama.cpp on an M5 Max.
+Most curricula teach only the left column. This one covers both, because *they're the same systems lessons* in different costumes — paged KV cache on H100 and on M5 Max are the same data structure with different bandwidth budgets, and the engineer who understands one understands the other.
 
 ## Mindset shift
 
@@ -39,7 +44,7 @@ python-pytorch/:     "How does the model work?"
 systems-for-ml/:     "How do we make it fast, cheap, reliable, and observable at scale?"
 ```
 
-The job is rarely "make it work." The job is: 50ms p99, 10× cheaper than GPT-4, never goes down, ships a new fine-tune every week, runs on the GPUs we can actually buy.
+The hard part is rarely "make it work." The hard part is: 50ms p99, 10× cheaper than GPT-4, never goes down, ships a new fine-tune every week, runs on the GPUs we can actually buy.
 
 ## Pedagogy — why the order matters
 
@@ -48,6 +53,147 @@ The job is rarely "make it work." The job is: 50ms p99, 10× cheaper than GPT-4,
 3. **Evaluate everything you change.** Quantization without `lm-eval-harness` is guessing. Every optimization week ends with a quality check.
 4. **Treat ML systems as distributed systems.** Most "ML infra" failures are networking, data pipeline, or queueing failures wearing an ML costume. Week 6 covers interconnects, tail latency, and failure injection alongside parallelism. Week 7 covers backpressure, multi-tenant fairness, and request hedging.
 5. **Production-shape the capstone.** Week 7 is observability, autoscaling, routing, fairness, and cost — what platform teams actually own.
+
+## Projects & Deliverables
+
+The weekly topic tables below are the **learning content**. The list here is the **artifact track** — what you actually ship as standalone repos with reports, the kind of work a curious reader can open and follow end-to-end.
+
+Four projects across the nine weeks. Not one per week. Each project absorbs 2–3 weeks of learning, builds on the previous one, and ends with a written report. By the end you have one coherent system, not nine disconnected tutorials.
+
+### How each project is structured
+
+Every project follows the same loop. Skip any step and you're back to tutorial-grade work.
+
+1. **Build the working version.** A baseline that runs end-to-end on the happy path.
+2. **Break it on purpose.** Each project has an explicit *failure modes you induce* list. You don't wait for breakage — you cause it (long contexts, concurrency spikes, node failures, traffic skew, quantization drift).
+3. **Measure the breakage.** Each project has a required-graphs list. Every graph answers one tradeoff question. Every graph is captioned **Setup → Observation → Insight**.
+4. **Fix or characterize.** Either fix the failure and re-measure the delta, or document why this specific wall is the right reason a real system (vLLM, FSDP, Ray) exists. Both outcomes are valid; vague hand-waving is not.
+5. **Ship the artifact.** Repo folder with code, `reports/` directory with graphs and writeup, and a README structured as a short systems paper (Problem → Architecture → Experiments → Findings → Tradeoffs).
+
+### The four projects
+
+| # | Project | Weeks | What it is | Real-world parallel |
+|---|---------|-------|------------|---------------------|
+| 1 | **`mini-serve` + `mini-vllm`** | 1–4 | Your hand-rolled FastAPI inference server, then your own paged KV cache + continuous batching layer dropped into it | The internal data structure of vLLM / SGLang |
+| 2 | **`engine-bakeoff`** | 5 | Reproducible benchmark harness comparing vLLM, SGLang, TGI, TensorRT-LLM, and llama.cpp on identical workloads | The eval doc every inference team writes before picking an engine |
+| 3 | **`mini-platform`** | 6–7 | Distributed training of a small model + production serving stack with router, autoscaler, observability, multi-tenant fairness, cost dashboard | A miniature of what platform teams at Scale / Anthropic / Databricks own |
+| 4 | **`local-agent`** | 8 | Apple Silicon local-first agentic loop using MLX + llama.cpp, with QLoRA personalization and local DPO | The on-device backend of Cursor's local mode, or any private-AI startup |
+
+Week 9 (compiler tour) is reading-shaped. Deliverable is a short writeup tracing one model through `torch.compile` / Inductor — no separate project repo needed.
+
+### How they chain
+
+```
+mini-serve (W1)  ──►  mini-vllm KV cache (W4)  ──►  drops into mini-serve
+                                                          │
+                              engine-bakeoff (W5)  ◄──────┤  (your server is one of the entries)
+                                                          │
+              distributed-trainer (W6) ──► trained model  │
+                                                          ▼
+                                                   mini-platform (W7)
+                                                   serves the W6 model via the
+                                                   best W5 engine, with router +
+                                                   autoscaler + observability
+                                                   from this project
+
+                              local-agent (W8) ──► parallel track, Apple Silicon
+```
+
+The chain is the point. By Project 3 you can say: *"Here's a platform. The model was trained with the W6 setup. It's served by vLLM, which I know cold because in W5 I benchmarked it against four others, and in W4 I implemented its core data structure myself."* That answer is the difference between `used vLLM` and `understands vLLM`.
+
+### Per-project required graphs and break-it list
+
+Each project section below names exactly what to break and what to graph. These aren't optional — they're the deliverable.
+
+#### Project 1 — `mini-serve` + `mini-vllm`
+
+**Break it on purpose:**
+- Mixed sequence lengths in a static batch (watch GPU sit idle on padding)
+- 100 concurrent requests with no batching (watch tail latency explode)
+- 100K-token prompt with a contiguous KV cache (watch OOM or fragmentation)
+- LRU vs FIFO vs sliding-window eviction under prefix-sharing workload (watch cache hit rate diverge)
+
+**Required graphs:**
+- G1: batch size vs throughput vs p99 latency — the classic systems tradeoff curve
+- G2: request latency CDF (p50 / p95 / p99 / p999) at fixed concurrency
+- G3: context length (1K → 128K) vs TTFT — prefill cost dominance, memory-bound behavior
+- G4: KV cache hit rate vs latency under prefix-sharing workload
+- G5: eviction policy comparison (LRU / FIFO / length-aware) — latency or cache miss rate
+
+**Outcome artifact:** repo with `mini-serve/`, `mini-vllm/`, `reports/project1.md` containing all five graphs with Setup/Observation/Insight captions.
+
+#### Project 2 — `engine-bakeoff`
+
+**Break it on purpose:**
+- Same model, same prompts, same hardware — but each engine with its default flags vs tuned flags
+- Long-context workload that exposes KV cache strategy differences
+- Prefix-heavy workload (chatbot-style) that exposes RadixAttention's edge in SGLang
+- Constrained-memory scenario (smaller GPU than the model nominally needs)
+- **Cross-substrate cost run:** llama.cpp on CPU vs the same model on a small GPU — find the workload regime where CPU actually wins on $/Mtok
+
+**Required graphs:**
+- G6: TTFT bar chart per engine, split by short prompt (128 tok) vs long prompt (4K tok)
+- G7: throughput (tokens/sec) per engine on identical workload
+- G8: GPU memory usage vs context length, per engine
+- G9: cost per million tokens per engine + quantization combination — *include CPU-only llama.cpp as one of the rows*
+
+**Outcome artifact:** `engine-bakeoff/` repo + `reports/bakeoff.md` written as a short systems-paper-style eval doc. This is exactly the document an inference team writes before adopting an engine — one of the two strongest artifacts in the curriculum.
+
+#### Project 3 — `mini-platform`
+
+**Break it on purpose:**
+- Kill a node mid-training (watch what FSDP / Ray do)
+- Inject a straggler node into distributed inference (watch p99 explode)
+- Skew traffic 90% to one replica (watch noisy-neighbor effects across tenants)
+- Push queue depth past autoscaler threshold (verify scale-up actually happens before SLA breach)
+- Run a model regression — same engine, new checkpoint that's 5% worse on `lm-eval-harness` (verify the regression gate blocks deploy)
+- Trigger a cold start during peak load (watch the first request after a scale-up event)
+- Starve the GPU on the data side: undersized tokenizer pool, tiny prefetch (watch GPU util collapse while loss curves stall)
+- Swap the scheduler from FCFS to a priority/SJF-batching variant on the same workload
+
+**Required graphs:**
+- G10: training throughput vs interconnect type (TCP vs RDMA vs NVLink — even simulated)
+- G11: p99 latency timeline with node-failure event marker at t=30s
+- G12: p99 latency vs traffic skew (% of requests routed to hottest replica)
+- G13: queue depth vs latency — the curve your autoscaler reads, with a Little's-Law (L = λW) validation overlay
+- G14: cost vs scaling strategy (vertical = bigger GPU vs horizontal = more replicas)
+- G15: cold-vs-warm request latency, with the scale-up reaction window annotated — shows why the autoscaler must fire ahead of demand
+- G16: scheduling policy comparison (FCFS vs priority vs SJF-style batching) on identical workload — measure p99, fairness, throughput
+- G17: tokenization throughput vs training step throughput — the data-pipeline ceiling that bottlenecks the GPUs
+
+**Outcome artifact:** `mini-platform/` with `training/`, `serving/`, `routing/`, `observability/`, `eval/`, plus `reports/platform.md` written as a systems paper. This is the capstone — it stitches every previous week together.
+
+#### Project 4 — `local-agent`
+
+**Break it on purpose:**
+- Same agentic task in cloud-API mode vs local mode — measure latency, cost, and privacy posture side by side
+- Push context past unified-memory limits on your specific Mac — characterize where local breaks
+- Run the same model in MLX vs `llama.cpp` (Metal backend) vs PyTorch (MPS) — same prompts, three numbers
+- Personalize via QLoRA on your own writing/code — measure quality drift on general tasks (the catastrophic-forgetting check)
+
+**Required graphs:**
+- G18: TTFT and tokens/sec on Apple Silicon: MLX vs llama.cpp vs PyTorch MPS
+- G19: memory pressure curve as context grows on unified-memory hardware
+- G20: quality before/after on-device QLoRA — task accuracy on personalized task vs general benchmarks
+
+**Outcome artifact:** `local-agent/` repo + `reports/local.md`. A standalone, demonstrable system — the kind of project that's genuinely useful as a personal tool *and* showcases real systems thinking.
+
+### What "good" looks like for the writeups
+
+Each `reports/*.md` should follow this structure — borrowed from how systems papers are written, not how blog posts are:
+
+```
+1. Problem statement       (1 paragraph: what tradeoff this project explores)
+2. System architecture     (one diagram, labeled)
+3. Experiments             (what you ran, on what hardware, with what workload)
+4. Key findings            (numbered, each one a single quantitative claim)
+5. Tradeoffs               (latency vs throughput vs cost vs quality vs complexity)
+6. What would change at 10× scale  (the question senior engineers always ask)
+```
+
+A finding looks like: *"Continuous batching reduced p99 latency by 38% under mixed-length workloads at 64 concurrent users; throughput improved 2.1× with no quality regression on `lm-eval-harness`."* Not: *"Continuous batching is faster."*
+
+---
 
 ## Weekly Roadmap
 
@@ -65,6 +211,8 @@ Build a real LLM inference server — accept prompts, return generated tokens. N
 | 06 | local-first-touch | Run Ollama + llama.cpp locally — same prompts, see the *other* end of the spectrum |
 
 **Outcome:** You have a working LLM API server. You can speak fluently about TTFT (time-to-first-token), ITL (inter-token-latency), tokens/sec, and why naive batching breaks under variable sequence lengths. You've also seen what "local serving" looks like before we deep-dive into it later.
+
+**Project:** This week is the first half of **Project 1 (`mini-serve`)**. By Friday you should have the baseline server running and the load-test harness producing G1 and G2 from the Project 1 graph list.
 
 **Compute:** CPU only. Your MiniGPT from Level 4 is tiny enough.
 
@@ -132,6 +280,8 @@ Take your inference server and make it fast. Every topic ends with a quality che
 
 **Outcome:** You can explain (and partially implement) every major LLM optimization trick. For each, you know the *quality cost*, not just the speedup. You've built your own paged KV cache — meaning you could have written vLLM's core data structure yourself.
 
+**Project:** This week closes out **Project 1**. Drop your paged KV cache into `mini-serve` to create `mini-vllm`, then run the full break-it list (long context, eviction policy comparison, prefix-sharing workload). Ship `reports/project1.md` with all five required graphs.
+
 **Compute:** Mix of CPU (concepts) and Colab GPU (benchmarks).
 
 ---
@@ -145,14 +295,19 @@ The week the original curriculum was missing. Now that you've built a server and
 | 01 | vllm-hello-world | Serve Qwen/Llama via vLLM, hit the OpenAI-compatible endpoint |
 | 02 | vllm-features | Prefix caching, chunked prefill, tensor parallelism flags |
 | 03 | sglang-and-radixattention | Same model on SGLang — when prefix sharing matters most |
-| 04 | tgi-and-tensorrt-llm | HuggingFace TGI + TensorRT-LLM — the other two engines you'll see |
-| 05 | llama-cpp-deep-dive | GGML internals, CPU + Metal + CUDA backends, when llama.cpp beats vLLM |
-| 06 | engine-bake-off | Same model + same load test across all five — write up the differences |
-| 07 | multi-lora-serving | Train tiny LoRAs, hot-swap them via vLLM's multi-LoRA endpoint |
-| 08 | offline-batch-inference | vLLM offline mode for million-doc scoring jobs |
-| 09 | speculative-decoding-in-prod | Enable spec-decode in vLLM, measure end-to-end gain |
+| 04 | tensorrt-llm | TensorRT-LLM PyTorch flow + FP8/NVFP4; NIM as the customer-facing wrapper |
+| 05 | llama-cpp-deep-dive | GGML internals, Metal/CUDA/CPU backends, when llama.cpp beats vLLM |
+| 06 | mlc-llm | Compiler-based, cross-platform; WebGPU and heterogeneous hardware |
+| 07 | engine-bake-off | Same model + same load test across all five — write up the differences |
+| 08 | disaggregated-inference | Prefill/decode split, NIXL transport — standard, not novel in 2026 |
+| 09 | dynamo-and-llmd | NVIDIA Dynamo + llm-d (CNCF Sandbox 2026) — the production frontier |
+| 10 | multi-lora-serving | Train tiny LoRAs, hot-swap them via vLLM's multi-LoRA endpoint |
+| 11 | offline-batch-inference | vLLM offline mode for million-doc scoring jobs |
+| 12 | speculative-decoding-in-prod | EAGLE-3 in vLLM V1, measure end-to-end gain |
 
-**Outcome:** You can pick the right engine for a workload, tune its flags, and serve dozens of fine-tunes off one base model. This is the single most-asked-about week in interviews.
+**Outcome:** You can pick the right engine for a workload, tune its flags, and serve dozens of fine-tunes off one base model. This week is where the inference-engineering field's center of gravity sits.
+
+**Project:** This week *is* **Project 2 (`engine-bakeoff`)**. Use the load harness from Project 1 to drive identical workloads against vLLM, SGLang, TGI, TensorRT-LLM, and llama.cpp. Ship `reports/bakeoff.md` with G6–G9 and a written recommendation: *"For workload X on hardware Y, use engine Z because…"*
 
 **Compute:** RunPod / Lambda / Vast.ai bursts. Budget ~$30–50 for the week. A single L4 or A10 (≈$0.40/hr) gets you through most of it.
 
@@ -180,6 +335,8 @@ Scale beyond one GPU. The hidden lesson: most distributed training failures are 
 
 **Outcome:** You understand how 70B+ models are trained across GPU clusters. You know which parallelism axis to add when you hit which wall, why interconnect choice dominates the cost-per-token math, and what actually happens when a node dies at hour 47 of a training run.
 
+**Project:** This week is the first half of **Project 3 (`mini-platform`)**. Train a small model with FSDP, run the failure-injection list, and ship G10 (training throughput vs interconnect) and G11 (p99 timeline with node-failure marker). The trained checkpoint becomes the model your Week 7 platform serves.
+
 **Compute:** Conceptual on CPU. Real runs need multi-GPU (Colab Pro or RunPod for short bursts).
 
 ---
@@ -197,13 +354,17 @@ Build a mini version of what platform teams at Scale / OpenAI / Anthropic actual
 | 05 | observability | Prometheus + Grafana — tokens/sec, queue depth, GPU util, KV-cache fill |
 | 06 | inference-routing | L4 vs L7 routing, sticky sessions for prefix-cache locality, request hedging |
 | 07 | multi-tenant-fairness | Per-tenant quotas, noisy-neighbor isolation, fair queueing across customers |
-| 08 | backpressure-and-queueing | Little's Law applied to LLM serving — when to shed load vs queue vs hedge |
-| 09 | autoscaling | Scale replicas on `vllm:num_requests_waiting` and queue latency |
-| 10 | cost-economics | $/Mtok per engine + quant combo — when to quantize vs scale horizontally |
-| 11 | safety-and-abuse | Rate limiting, prompt-injection at the infra layer, output filtering |
-| 12 | mini-rlxf | End-to-end: SFT → reward model → RLHF pipeline orchestration |
+| 08 | backpressure-and-queueing | Little's Law (L = λW) — derive it, then *validate it* against your own system metrics; when to shed load vs queue vs hedge |
+| 09 | scheduling-policies | FCFS vs priority vs SJF-style batching heuristics — measure how the choice shapes p99 |
+| 10 | autoscaling | Scale replicas on `vllm:num_requests_waiting` and queue latency |
+| 11 | cold-start-and-warmup | Model load time, warm vs cold request latency, why your scale-up must fire *before* the SLA breach |
+| 12 | cost-economics | $/Mtok per engine + quant combo — when to quantize vs scale horizontally |
+| 13 | safety-and-abuse | Rate limiting, prompt-injection at the infra layer, output filtering |
+| 14 | mini-rlxf | End-to-end: SFT → reward model → RLHF pipeline orchestration |
 
 **Outcome:** You've built a tiny version of Scale's RLXF platform — and unlike most tutorials, yours has dashboards, autoscaling, and a cost model.
+
+**Project:** This week closes out **Project 3 (`mini-platform`)**. Stitch the W6 trained model + the best-from-bakeoff engine + your router + autoscaler + Prometheus dashboards into one running system. Run the remaining break-it list (traffic skew, queue-depth threshold, regression gate, cold-start during peak, scheduler swap, data-pipeline starvation) and ship G12–G17 plus the final `reports/platform.md` written as a systems paper.
 
 **Compute:** All CPU. This is system design + orchestration code. Optionally point it at the Week 5 engines for a real end-to-end demo.
 
@@ -211,7 +372,7 @@ Build a mini version of what platform teams at Scale / OpenAI / Anthropic actual
 
 ### Week 8 — Local & On-Device Intelligence (Apple Silicon, MLX, Personalization)
 
-The other half of the field. Datacenter inference is half the job market; local-first AI (agentic IDEs, private-AI startups, on-device assistants) is the other half. Apple Silicon's unified memory architecture changed what's possible on a laptop — a maxed-out M-series machine now runs 70B-class models with no GPU rack involved.
+The other half of the field. Datacenter inference is one side; local-first AI (agentic IDEs, private-AI tooling, on-device assistants) is the other. Apple Silicon's unified memory architecture changed what's possible on a laptop — a maxed-out M-series machine now runs 70B-class models with no GPU rack involved.
 
 | # | Topic | What you build |
 |---|-------|---------------|
@@ -228,6 +389,8 @@ The other half of the field. Datacenter inference is half the job market; local-
 
 **Outcome:** You can ship a local-first AI product. You understand UMA, MLX, Metal, and the GGUF ecosystem deeply enough to build something like Cursor's local mode or a private agentic IDE.
 
+**Project:** This week *is* **Project 4 (`local-agent`)**. Build the agentic loop, run the cloud-vs-local comparison, characterize where unified memory breaks, and ship G18–G20 with `reports/local.md`. A standalone artifact you can actually use day-to-day, with the systems lessons made explicit.
+
 **Compute:** Your own Mac (M-series strongly recommended). No cloud spend.
 
 ---
@@ -236,7 +399,7 @@ The other half of the field. Datacenter inference is half the job market; local-
 
 > **Scope note:** The point of *this* curriculum is to make you fluent **end-to-end** — train, optimize, serve, scale, ship. Once you have that, the compiler stack is a separate, deeper specialization you can choose to dive into if it interests you.
 >
-> So this week is **a high-level tour, not a compiler course.** The goal is awareness: when you read a job description that says "MLIR / LLVM experience a plus," or when `torch.compile` does something surprising, you know what's actually happening underneath. If you fall in love with it, that's a *whole separate track* — not something we cram into one week here.
+> So this week is **a high-level tour, not a compiler course.** The goal is awareness: when `torch.compile` does something surprising, when you see "MLIR" or "StableHLO" mentioned in a paper or repo, you know what's actually happening underneath. If you fall in love with it, that's a *whole separate track* — not something we cram into one week here.
 
 | # | Topic | What you'll be able to explain |
 |---|-------|-------------------------------|
@@ -272,28 +435,31 @@ Paid (use sparingly, $30-100 total for the curriculum):
 
 Spin down between sessions. Set hard budget alarms. The whole curriculum should cost less than one month of ChatGPT Pro.
 
-## What you'll be able to claim on a resume
+## What you'll actually be able to do
 
 After Weeks 1–7:
 
-- "Built a multi-engine LLM serving stack benchmarking vLLM, SGLang, TGI, TensorRT-LLM, and llama.cpp with reproducible load tests."
-- "Implemented a paged KV cache manager from scratch — pages, block table, eviction policies — and benchmarked LRU vs sliding-window vs prefix-sharing strategies on 100K-token workloads."
-- "Profiled and optimized a transformer inference path from X tok/s to Y tok/s, validated with `lm-eval-harness`."
-- "Implemented and compared DDP, FSDP, ZeRO-3, and 3D parallelism on a multi-GPU cluster; characterized interconnect impact (TCP vs RDMA vs NVLink) on training throughput."
-- "Designed a mini ML platform with model registry, request hedging, multi-tenant fairness, queue-depth autoscaling, and per-request cost accounting."
-- "Ran failure-injection tests across distributed training and inference — measured p99 tail-latency blowup under stragglers and built recovery paths."
+- Build a multi-engine LLM serving stack and benchmark vLLM, SGLang, TensorRT-LLM, llama.cpp, and your own implementation against each other on reproducible workloads.
+- Implement a paged KV cache manager from scratch — pages, block table, eviction policies — and reason through why it beats a contiguous cache on long contexts and prefix-sharing workloads.
+- Profile a transformer inference path with Nsight Systems, Nsight Compute, and PyTorch Profiler; place kernels on a roofline; identify whether you're compute-bound, memory-bound, or latency-bound.
+- Train a model with FSDP2 + DeviceMesh on multi-GPU; sketch when each axis of 5D parallelism (TP/PP/DP/EP/CP) is needed; characterize how interconnect choice (TCP / RDMA / NVLink) shapes throughput.
+- Stand up a mini production platform — KV-cache-aware routing, KEDA autoscaling on `vllm:num_requests_waiting`, OpenTelemetry GenAI observability, weighted-fair-queueing for multi-tenant fairness, per-(engine×quant×hardware) cost dashboards.
+- Inject real failures (node deaths, stragglers, traffic skew, queue-threshold breaches, cold starts during peak load, regression-gate triggers) and recover correctly.
 
 After Week 8 (local / on-device):
 
-- "Built a local-first agentic system on Apple Silicon using MLX and llama.cpp — sub-100ms TTFT with zero API cost."
-- "Fine-tuned a 7B model on-device using QLoRA + local DPO; benchmarked MLX vs PyTorch on the same workload."
-- "Wrote AVX-512 / NEON-aware kernels for CPU inference, characterizing where llama.cpp on CPU beats a small GPU on cost-per-token."
+- Build a local-first agentic system on Apple Silicon using MLX and llama.cpp with sub-100ms TTFT and zero API cost.
+- Fine-tune a 7B model on-device using QLoRA + local DPO/GRPO and verify quality with `lm-eval-harness`.
+- Reason about CPU SIMD / AMX / SME2 paths and characterize the workload regimes where llama.cpp on CPU beats a small GPU.
+- Use Apple's Foundation Models framework with a custom adapter — the on-device 3B path.
 
 After Week 9 (compiler awareness):
 
-- "Comfortable reading `torch.compile` / Inductor traces and explaining how a PyTorch graph lowers toward hardware; familiar with the MLIR/LLVM ecosystem at a conceptual level."
+- Read a `torch.compile` / Inductor trace and roughly follow it down through Triton → PTX → SASS.
+- Hold a real conversation about MLIR, StableHLO, IREE, and the difference between GPU / TPU / Groq / Cerebras compiler stacks.
+- Decide, with eyes open, whether to dive into the compiler-engineering world separately.
 
-These map directly to the bullet points in real **LLM Inference Engineer / ML Systems Engineer / AI Performance Engineer** job descriptions — across both datacenter and local-AI companies. *Compiler Engineer* roles (NVIDIA, Apple, AMD, Groq, Cerebras, Tenstorrent, Modular) require a deeper, separate specialization beyond this curriculum.
+These are skills the field actually exercises every day. The point isn't to collect them — it's to *understand the substrate* well enough that future tools and architectures aren't mysterious. New engines come and go; paged attention, continuous batching, prefix caching, and the bandwidth hierarchy don't.
 
 ## Capstone Project: MiniLLM RLXF Platform
 
