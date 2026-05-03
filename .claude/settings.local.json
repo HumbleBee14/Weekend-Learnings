@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker --version)",
+      "Bash(docker-compose --version)",
+      "Bash(git -C /Users/humblebee/Documents/GitHub/Weekend-Learnings rev-parse --show-toplevel)",
+      "Bash(brew install *)"
+    ]
+  }
+}
