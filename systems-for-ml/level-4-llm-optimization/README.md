@@ -74,12 +74,17 @@ Run a baseline: same model in FP32, FP16, BF16. Measure throughput and `lm-eval-
 - **E4M3** — 4-bit exponent, 3-bit mantissa. Range ~±448. Used for forward pass, weights, activations.
 - **E5M2** — 5-bit exponent, 2-bit mantissa. Range ~±57344. Used for gradients (wider dynamic range).
 
-**NVFP4 / MXFP4.** 4-bit floats grouped into blocks of 16 or 32 elements, each block sharing a scaling factor. NVFP4 is NVIDIA's E2M1 variant with FP8 scale; MXFP4 is the OCP standard with E8M0 (power-of-two) scale. Hardware: NVFP4 on Blackwell, MXFP4 on Blackwell + AMD MI355.
+**NVFP4 / MXFP4.** 4-bit floats grouped into blocks of 16 or 32 elements, each block sharing a scaling factor stored as E8M0 (a power-of-two bit-shift — hardware-friendly). NVFP4 is NVIDIA's E2M1 variant with block size 16; MXFP4 is the OCP standard with block size 32. Hardware: NVFP4 on Blackwell, MXFP4 on Blackwell + AMD MI355. Why block scaling? Per-tensor FP4 loses too much accuracy because one outlier blows the global scale. A per-block scale fixes each group of 16–32 elements independently — same hardware cost, much better accuracy. The Blackwell B200 delivers ~18,000 sparse FP4 TFLOPS vs ~9,000 sparse FP8 — the 2× hardware throughput ratio is why FP4 matters.
+
+**Two tools for MX quantization in 2026:**
+- **`llm-compressor`** (`vllm-project/llm-compressor`, v0.9.0+): supports W8A8 (FP8), MXFP8, MXFP4, NVFP4, and mixed precision. The standard path for quantizing models for vLLM deployment.
+- **TorchAO** (`pytorch/ao`): PyTorch-native tensor subclass abstractions for MXFP4/MXFP6/MXFP8. Better for research/experimentation; integrates cleanly with `torch.compile`.
 
 **Build steps (FP8 minimum, NVFP4 optional if no Blackwell access).**
 1. Install `llm-compressor`. Use the FP8 dynamic-quantization recipe on a 1–7B model.
 2. Serve through vLLM (which supports FP8 KV cache + FP8 weights natively).
 3. Compare to FP16 baseline: throughput, memory, `lm-eval-harness` MMLU score.
+4. (Optional / Blackwell only) Run the NVFP4 recipe in `llm-compressor`; benchmark dequantization overhead with Nsight.
 
 ### 03 — `weight-only-ptq`
 

@@ -165,6 +165,8 @@ This is the foundation of every other topic this week. Without metrics, you can'
 
 Reference: vLLM Production Stack's KV-cache-aware router is open source. You can read it as a pattern.
 
+**Rust note.** The vLLM Semantic Router v0.1 ("Iris", Jan 2026) is production Rust: HuggingFace Candle for embedding inference, Tokio for async request handling, custom prefix-hash logic. It delivers 25% higher request throughput and 1,200ms lower TTFT vs the Python-based router. At this stage, implement your router in Python for speed of iteration — but know the Rust version exists and why the latency wins are real (no GIL, no GC pauses in the request path). The `compiler-and-kernels` track covers Rust for infra in depth.
+
 ### 07 — `multi-tenant-fairness`
 
 **Three layers in production.**
