@@ -53,6 +53,7 @@ The hard part is rarely "make it work." The hard part is: 50ms p99, 10× cheaper
 3. **Evaluate everything you change.** Quantization without `lm-eval-harness` is guessing. Every optimization week ends with a quality check.
 4. **Treat ML systems as distributed systems.** Most "ML infra" failures are networking, data pipeline, or queueing failures wearing an ML costume. Week 6 covers interconnects, tail latency, and failure injection alongside parallelism. Week 7 covers backpressure, multi-tenant fairness, and request hedging.
 5. **Production-shape the capstone.** Week 7 is observability, autoscaling, routing, fairness, and cost — what platform teams actually own.
+6. **Test what you build.** ML systems testing is its own subject — see [`TESTING.md`](TESTING.md) for the seven layers (schema, numerical correctness, tolerance equivalence, property-based, integration, load, quality regression). Each level's projects reference it.
 
 ## Projects & Deliverables
 

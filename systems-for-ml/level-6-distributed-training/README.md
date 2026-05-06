@@ -67,6 +67,12 @@ The trained checkpoint from this week becomes the model your Level 7 `mini-platf
 - **Tree algorithm** — latency proportional to log(N), bandwidth-suboptimal. Default for small messages.
 - **NCCL 2.27 SHARP** — switch-offloaded reductions (NVLink + IB switches do the math). Frees SMs and scales past 1024 GPUs.
 
+**NCCL vs OpenMPI — what you'll see in the wild.** OpenMPI is the HPC-world equivalent of NCCL: same collective primitives (MPI_Allreduce, MPI_Allgather, MPI_Alltoall), much older (1990s heritage), CPU-first with GPU support added later. Its place in 2026:
+- **NCCL dominates LLM work** — every modern training/inference framework (PyTorch DDP/FSDP, DeepSpeed, Megatron, vLLM TP) uses NCCL on NVIDIA hardware.
+- **OpenMPI shows up in HPC-adjacent ML** — molecular dynamics + ML, scientific computing pipelines, older training codebases that pre-date NCCL maturity. Some non-NVIDIA systems still default to MPI.
+- **Hybrid setups exist** — MPI for process spawning + NCCL for GPU collectives. `mpirun -np 8 python train.py` launches 8 processes, each then initializes a NCCL communicator. This is a common pattern in labs that came from HPC.
+- **What to remember**: same collective vocabulary (all-reduce, all-gather, etc.). If you see `MPI_Allreduce` in code, mentally substitute "this is what NCCL would do for a GPU tensor." The algorithms (ring, tree) are the same; the implementation differs.
+
 **NCCL 2.27 Communicator Shrink.** Drop a failed/unwanted GPU from a comm dynamically. "Default" mode for planned reconfig; "Error" mode for fault recovery. This is the foundation under elastic training in 2026.
 
 **Ring all-reduce — the algorithm.** Why ring is bandwidth-optimal for large messages: with N GPUs and message size M, a ring all-reduce sends `2(N-1)/N · M` bytes per GPU — asymptotically `2M` regardless of N. Each GPU only ever sends to its right neighbor and receives from its left. It runs in `2(N-1)` steps: N-1 reduce-scatter steps + N-1 all-gather steps. The bandwidth-optimal property is what makes ring scale to thousands of GPUs.

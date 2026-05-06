@@ -48,6 +48,8 @@ Several things have shifted enough that older guides are misleading:
 | 10 | multi-lora-serving | Hot-swap LoRA adapters |
 | 11 | offline-batch-inference | vLLM offline mode for million-doc scoring |
 | 12 | speculative-decoding-in-prod | EAGLE-3 in vLLM, end-to-end gain |
+| 13 | onnx-runtime-and-tensorrt | The non-LLM-specific runtime path: ONNX Runtime + TensorRT (the runtime, not TRT-LLM). Where ORT/TRT win, where they don't, when you'd reach for them. |
+| 14 | vlm-serving | Vision-language model inference: vision encoder + cross-attention + decoder. Different KV cache shape, different batching constraints, different prefill cost. Qwen2.5-VL / Pixtral / LLaVA. |
 
 ### 01 — `vllm-hello-world`
 
@@ -209,6 +211,116 @@ The transfer mechanics — NIXL, RDMA, GPUDirect — are covered as systems prim
 2. Same workloads as the bake-off, with spec decode on.
 3. Measure: speedup, acceptance rate, quality (`lm-eval-harness` again).
 4. Workload sensitivity: chat (high acceptance) vs code (varies) vs hard reasoning (low acceptance).
+
+### 13 — `onnx-runtime-and-tensorrt`
+
+**What this is.** Two production runtimes that exist outside the LLM-specific stack and that you'll meet in real codebases. They're not optimized for autoregressive generation the way vLLM is — but they're often the right choice for embeddings, reranking, vision, audio, or smaller transformer models served at scale.
+
+**ONNX Runtime (ORT).** Microsoft's cross-framework runtime. Takes an ONNX-format model (an open exchange format) and runs it via a graph executor. Backends: CPU (oneDNN, AVX-512), CUDA, ROCm, CoreML (Apple), DirectML (Windows), WebGPU (browser), TensorRT (as a sub-execution-provider). Single binary, portable across platforms.
+
+Where ORT wins:
+- **Embedding / reranking models at scale** — BGE, jina-embeddings, ColBERT, BERT-variants. ORT's graph optimizer beats raw PyTorch on these by 2–3× and ships as a static binary.
+- **CPU inference** — small classification / NER models on CPU clusters (still common in production).
+- **Edge deployment** — Windows, Android, browsers (via WebGPU). PyTorch can't go there cleanly.
+- **Cross-framework portability** — model trained in PyTorch or TF, exported once to ONNX, runs anywhere.
+
+Where ORT loses:
+- **Autoregressive LLM serving.** No paged KV, no continuous batching. You'd write that yourself on top.
+- **Hopper-/Blackwell-specific kernels** — TRT-LLM and vLLM's tensor-core paths are usually faster for big LLMs.
+
+**TensorRT (the runtime).** NVIDIA's inference compiler+runtime, NVIDIA-only. Takes a model (ONNX or via the TRT API), produces an optimized plan binary, runs it. Aggressive: kernel auto-tuning, layer fusion, INT8/FP8 calibration, kernel selection per shape. The plan is hardware-and-version-specific — you re-build per GPU.
+
+Where TRT (not TRT-LLM) wins:
+- **Vision and ASR models** — ResNet, ViT, DETR, Whisper, YOLO. TRT plans for vision are 2–5× faster than PyTorch eager and slightly faster than ORT.
+- **Sub-billion-parameter transformers** with fixed shapes — fits TRT's compiled-plan model well.
+- **Embedded/edge NVIDIA** (Jetson) — TRT is the standard runtime there.
+
+Where TRT loses:
+- **Dynamic-shape autoregressive workloads** — TRT prefers static shapes; LLM decode has dynamic sequence length. This is exactly why TRT-LLM exists — to handle the LLM-specific dynamics on top of TRT.
+- **Fast iteration** — re-building plans takes minutes; bad for development loops.
+
+**The decision tree.**
+```
+Is your workload autoregressive LLM serving?
+  → Yes: vLLM / SGLang / TRT-LLM (Topics 01–04 of this level)
+  → No: Is it transformer-shaped with fixed shapes?
+        → Yes (vision/ASR/embedding): TensorRT or ORT-with-TRT-EP
+        → No (general DL): ONNX Runtime
+```
+
+**Build steps.**
+1. Take a small embedding model (e.g., `BAAI/bge-small-en-v1.5`). Export to ONNX via `torch.onnx.export` or `optimum`.
+2. Run via ORT, ORT-with-CUDA-EP, ORT-with-TensorRT-EP. Measure throughput (embeddings/sec) at batch sizes 1, 8, 32, 128.
+3. Compare to PyTorch eager and `torch.compile` paths.
+4. Repeat with a small ViT (e.g., `google/vit-base-patch16-224`). The TRT win should be larger here.
+5. Document: at what batch size does each runtime win?
+
+**Honest framing.** This is *not* the path for serving your fine-tuned 70B model. It *is* the path for serving the embedding model that retrieves context for your 70B's RAG, or the safety classifier that filters its inputs, or the vision encoder feeding your VLM (Topic 14). A real production stack uses several runtimes, each for what it's best at.
+
+**Resources.**
+- ONNX Runtime — https://onnxruntime.ai/
+- ORT execution providers — https://onnxruntime.ai/docs/execution-providers/
+- TensorRT — https://docs.nvidia.com/deeplearning/tensorrt/
+- HuggingFace Optimum (PyTorch → ONNX export pipeline) — https://huggingface.co/docs/optimum/
+
+### 14 — `vlm-serving`
+
+**What it is.** Vision-Language Models — models that take both image and text input. As of 2026 these are the default, not the exception: Qwen2.5-VL, Pixtral, LLaVA-OneVision, Gemini, GPT-4o, Claude 3.7 are all multimodal. Most "agentic workloads" need them (browse-the-web agents, screenshot analysis, document understanding).
+
+**The architecture in one diagram.**
+
+```
+                ┌─────────────────────────────────────────────────────┐
+                │   Vision encoder (ViT-style, often SigLIP / CLIP)   │
+   image  ─────→│   patches the image, emits visual tokens            │
+                │   ~256-576 tokens for a 336×336 image               │
+                └─────────────────────────────────────────────────────┘
+                                    ↓
+                ┌─────────────────────────────────────────────────────┐
+                │   Projector (small MLP or cross-attention)          │
+                │   maps visual tokens into the LLM's embedding space │
+                └─────────────────────────────────────────────────────┘
+                                    ↓ visual tokens (now in LLM token space)
+                ┌─────────────────────────────────────────────────────┐
+                │   LLM decoder (regular causal transformer)          │
+   text   ─────→│   prepends/interleaves visual tokens with text      │
+                │   does autoregressive generation as usual           │
+                └─────────────────────────────────────────────────────┘
+                                    ↓ output tokens
+```
+
+**What's different from text-only LLM serving.**
+
+1. **Two-stage prefill.** Vision encoder runs first (a separate small forward pass — heavy compute, no KV cache), then the LLM prefill consumes the projected visual tokens. The encoder pass is *not* batched the same way as LLM prefill — different model, different shape, different optimal batch size.
+
+2. **Variable visual token counts.** Different image resolutions produce different numbers of visual tokens (Qwen2-VL goes from ~64 to ~16K visual tokens depending on image size). Padding waste in the visual prefill is *worse* than text padding waste because the variance is bigger.
+
+3. **KV cache for visual tokens looks weird.** The LLM's KV cache contains entries for visual tokens that have no real "text" meaning. Prefix caching across requests has to consider whether the *same image* was sent — a hash of the image bytes is needed in addition to the text prefix hash.
+
+4. **Memory pressure.** A 1080p image preserved at full resolution = ~16K visual tokens. Times batch size 8 = 128K tokens of KV cache from images alone — before any text. Long-context budgets blow up fast.
+
+5. **Encoder-decoder placement decisions.** On a heterogeneous setup, the vision encoder might run on a smaller GPU (it's compute-light relative to the LLM). This is exactly the disaggregation pattern from Topic 08 generalized to VLMs.
+
+**Production engines and VLM support (May 2026).**
+- **vLLM**: native VLM support since v0.6 (mid-2024). Qwen2-VL, Qwen2.5-VL, Pixtral, LLaVA, MiniCPM-V, Phi-3-Vision all work via the standard `LLM(model=...)` API.
+- **SGLang**: VLM support added in 2025; ahead on prefix-cache deduplication for repeated images.
+- **TRT-LLM**: VLM support exists, but the multimodal pipeline is more setup-heavy.
+- **vLLM V1 chunked prefill**: handles large visual prefills by splitting them across multiple decode steps — important when one image generates 16K tokens.
+
+**Build steps.**
+1. Serve Qwen2.5-VL-7B-Instruct (or smaller — Qwen2-VL-2B if memory tight) via vLLM. Send a request with one image + one text question.
+2. Measure: vision-encoder time, LLM prefill time, decode time. Three separate phases — note their relative cost.
+3. Send a batch of 8 requests with *the same* image, different text prompts. Measure with and without prefix caching enabled. The visual-token portion of the prefix should hit cache.
+4. Send 8 requests with *different* images. Confirm no false-positive cache hits (would be a quality bug).
+5. Stress test: 8 requests with very different image sizes (256×256 to 1024×1024). Watch the visual token count vary; observe padding waste.
+
+**Honest framing.** Most "agentic workloads" in 2026 are multimodal. If you can serve text-only LLMs but not VLMs, you're missing half the production landscape.
+
+**Resources.**
+- vLLM multimodal docs — https://docs.vllm.ai/en/latest/usage/multimodal_inputs.html
+- Qwen2.5-VL paper — https://arxiv.org/abs/2502.13923
+- LLaVA family — https://llava-vl.github.io/
+- SGLang multimodal — https://docs.sglang.ai/backend/multimodal.html
 
 ## Project 2 — close out this week
 
