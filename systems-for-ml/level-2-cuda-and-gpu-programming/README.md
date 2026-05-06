@@ -30,6 +30,7 @@ This is the only week in the curriculum where you write substantial GPU code you
 | 04 | triton-intro | Same kernels in Triton (Python) |
 | 05 | gpu-memory-hierarchy | HBM vs L2 vs SRAM — why FlashAttention exists |
 | 06 | flash-attention-walkthrough | Read FA2/FA3, identify each tile/load step |
+| 07 | cuda-streams-and-async | Multiple CUDA streams, events, async H2D/D2H, CUDA graphs interaction — the foundation vLLM's piecewise CUDA graph pattern relies on |
 
 ### 01 — `cuda-mental-model`
 
@@ -119,6 +120,27 @@ The bandwidth gap between SRAM (shared memory) and HBM is ~6×. That ratio is th
 - The [FlashInfer GitHub README](https://github.com/flashinfer-ai/flashinfer) — at minimum the architecture diagram.
 
 **Output.** A 200-word writeup in your notes: *"How does FlashAttention compute attention without materializing the N×N matrix?"* with the online softmax trick spelled out. This will be hard to write the first time. That's the point.
+
+### 07 — `cuda-streams-and-async`
+
+**What it is.** Streams are CUDA's primitive for ordering kernel launches. By default everything runs on stream 0, fully serialized. Multiple streams let independent operations overlap — kernel computing on stream A while H2D copy proceeds on stream B. Events synchronize across streams.
+
+**Why it matters here.** vLLM's piecewise CUDA graph pattern (Level 4) leans on stream/graph interaction without the curriculum teaching it. NCCL collectives (Level 6) live on dedicated streams. Disaggregated inference (Level 5) uses streams to overlap KV transfer with decode. This topic is the foundation under all three.
+
+**What to learn.**
+- Multiple streams: `cudaStream_t`, why default behavior serializes everything
+- Stream priorities (`cudaStreamCreateWithPriority`) — when to use them
+- Events: `cudaEventRecord` / `cudaStreamWaitEvent` — cross-stream synchronization without CPU involvement
+- Async copies: `cudaMemcpyAsync` only async if both src/dst use pinned memory; otherwise silently sync
+- CUDA graphs: capture a sequence of launches, replay as one driver call. Reduces per-kernel launch overhead from ~5µs to ~1µs.
+- How CUDA graphs interact with streams: the graph captures stream activity; replay submits to a stream. Dynamic shape support requires re-capture.
+
+**Connection to topics you'll meet later.**
+- vLLM piecewise CUDA graph (`compiler-and-kernels` Level 2): captures pre-attention and post-attention sub-graphs separately, leaves attention eager because of dynamic KV length.
+- NCCL streams (Level 6): communication overlaps with compute by running on a separate stream.
+- Disaggregated KV transfer (Level 5): NIXL operates on a dedicated transfer stream; decode worker can start while KV is mid-flight.
+
+**Output.** A small benchmark script: same forward pass on a single stream vs split across two streams with H2D copy overlapped. Measure the speedup.
 
 ## Project work this week
 

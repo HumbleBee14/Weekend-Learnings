@@ -52,7 +52,7 @@ Other things that have hardened:
 | 09 | scheduling-policies | FCFS vs priority vs SJF — measure p99 |
 | 10 | autoscaling-keda | Scale on queue depth + queue latency |
 | 11 | cold-start-and-warmup | Pre-warmed pools, model streamer, CRIU |
-| 12 | kv-tiering-lmcache | LMCache HBM→DRAM→NVMe; long-context viability |
+| 12 | kv-tiering-lmcache | LMCache HBM→DRAM→NVMe; long-context viability; cross-replica KV coherence + transfer protocols |
 | 13 | cost-economics | $/Mtok per engine + quant; FinOps for AI |
 | 14 | safety-and-abuse | Rate limit, prompt injection, output filtering |
 | 15 | reasoning-aware-serving | Long variable outputs, cancellation, reasoning budgets |
@@ -281,6 +281,26 @@ Remote backend (Redis/Mooncake/InfiniStore/Ceph; persistent, slowest)
 2. Run a long-doc Q&A workload — same document prefix, varied questions.
 3. Measure TTFT cold (first question) vs warm (subsequent questions hitting the cached prefix).
 4. Document the tier where each block lives during the run.
+
+**Cross-replica KV coherence — the hard part of multi-replica serving.**
+
+Once you have multiple vLLM workers behind a router (Topic 06), the same prefix exists in *one* worker's HBM but might be requested through *any* worker. KV-cache-aware routing (Topic 06) handles the steering; LMCache handles the storage tier; but there's still a coherence question: **what if two routes for the same prefix arrive at different workers nearly simultaneously?**
+
+The taxonomy of approaches:
+
+- **Pure prefix-aware routing.** Single owner per prefix. Other replicas don't have it; they pay the prefill cost when first asked. Simple but suffers under hot-key skew.
+- **Pull on demand via NIXL.** Prefix lives on worker A. Worker B receives a request matching that prefix. Worker B issues a NIXL pull from worker A's HBM (over RDMA, see Level 6's RDMA topic) before starting decode. Latency cost is one network round trip — still beats re-prefilling.
+- **Write-through to LMCache backend.** Every block, on eviction from HBM, writes through to a shared backend (Redis/Mooncake). Any worker can read it later. Adds write amplification and storage cost but gives the cleanest cluster-wide view.
+- **Replicated tier (Mooncake style).** Hot blocks proactively replicated to N workers. Trades capacity for parallelism on hot prefixes.
+
+**Coherence semantics.** KV cache is *append-only and immutable* once a token is computed — that's a huge simplification vs general distributed cache coherence (no invalidations needed). The hard part is transfer latency and consistency about *which version* of a block you're reading (not relevant for KV; the block at position P always represents tokens 0..P).
+
+**Connection to Level 5 + Level 6.** This is the same NIXL/GPUDirect/RDMA stack from disaggregated inference. There it's prefill→decode (one-way handoff); here it's worker→worker (on-demand pull). Same primitives, different access pattern.
+
+**Build steps (extended).**
+5. Read llm-d's [KV-cache-aware routing + transfer architecture](https://developers.redhat.com/articles/2025/10/07/master-kv-cache-aware-routing-llm-d-efficient-ai-inference). Identify which of the four approaches above llm-d uses.
+6. Read [LMCache's architecture page](https://docs.lmcache.ai/developer_guide/architecture.html). Annotate which tier each piece of metadata lives in (block hashes vs blocks themselves).
+7. Sketch the byte path for a single KV-block read in a 4-replica setup with a hot shared system prompt. Where does it live? How does worker B get it when its request arrives?
 
 ### 13 — `cost-economics`
 

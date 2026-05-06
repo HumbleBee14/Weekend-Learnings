@@ -166,6 +166,8 @@ This is the document an inference team writes before adopting an engine. It is o
 - **NIXL / NCCL transfer** — direct GPU-to-GPU over NVLink/IB. Low latency, ties prefill-decode placement.
 - **LMCache / CMX (BlueField-4)** — KV cache as cluster-level storage. Decoupled placement, slightly higher latency.
 
+The transfer mechanics — NIXL, RDMA, GPUDirect — are covered as systems primitives in **Level 6's NCCL + RDMA topic**. This topic is about *when* to use disaggregation and *what* you transfer; that one is about *how* the transfer actually moves bytes between GPUs across nodes.
+
 **2026 reality.** Disaggregation is the production architecture for frontier-scale serving. NVIDIA Dynamo, llm-d, Ray Serve LLM, SGLang, vLLM all support it.
 
 **Build steps (conceptual).** You won't run a real disaggregated cluster this week — too much infra. But you should:

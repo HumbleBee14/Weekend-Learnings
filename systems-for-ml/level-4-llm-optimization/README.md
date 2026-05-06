@@ -54,6 +54,8 @@ The curriculum below reflects this — older guides will recommend things that a
 | 13 | speculative-decoding | EAGLE-3, n-gram, draft model — acceptance rate matters |
 | 14 | continuous-batching | Multiple users, mixed lengths, no padding waste |
 | 15 | structured-output | Outlines / xgrammar / JSON schema — constrained decoding |
+| 16 | serving-concurrency | Sharded locks for the KV block manager, lock-free queues for admission, cancellation propagation, stream multiplexing — the concurrency patterns vLLM and SGLang actually use |
+| 17 | spec-decode-systems | Speculative decoding at the systems level: how spec interacts with continuous batching scheduling, verification/rollback semantics, tree-spec (EAGLE-3) acceptance handling, multi-model coordination |
 
 ### 01 — `quantization-basics`
 
@@ -264,6 +266,52 @@ You can also implement a tiny n-gram speculator yourself for understanding — i
 **Why infra cares.** Agentic workloads need reliable JSON output. Grammar masking has per-token overhead — measurable and worth knowing.
 
 **Build steps.** Add `response_format={"type": "json_schema", "schema": …}` to your vLLM endpoint. Measure ITL with and without grammar masking on a JSON-output workload.
+
+### 16 — `serving-concurrency`
+
+**What it is.** Real serving stacks are not "one async batcher loop." They have several concurrent loops sharing state, and the locking strategy decides whether the system scales or melts. This topic is the concurrency patterns vLLM and SGLang actually use.
+
+**Patterns to learn.**
+- **Sharded locks for the KV block manager.** A global lock around the page free-list serializes every allocation. vLLM uses sharded locks (per-GPU shard, or per-page-pool shard). Read `vllm/core/block/block_manager_v2.py` and find the locking; understand why a single mutex would be the bottleneck.
+- **Lock-free or single-writer admission queue.** The scheduler thread is the single writer to the running batch state; HTTP handlers are readers. Single-writer / multi-reader is the cleanest concurrency pattern when it fits.
+- **Cancellation propagation.** Client disconnects mid-stream; the decode slot must be freed *promptly*. Naive: poll on every step. Better: an `asyncio.Event` watched by both the HTTP handler and the scheduler. Worse-case: zombie decode slot for the full max_tokens. Build the worse case, observe it, fix it.
+- **Stream multiplexing.** One async stream per concurrent decode. Each yields tokens at its own rate. Backpressure: bounded per-stream queue; if client is slow, the queue fills and the scheduler stalls just *that* stream, not the batch.
+- **Async vs threaded for tokenization/detokenization.** Tokenization is CPU-bound — running it in the event loop blocks everything. Push it to a thread pool (`asyncio.to_thread`) or a separate worker process.
+
+**What to read in vLLM source:**
+- `vllm/core/scheduler.py` — the top-level scheduling loop
+- `vllm/core/block/block_manager_v2.py` — locking strategy
+- `vllm/engine/async_llm_engine.py` — the asyncio bridge to the scheduler
+- `vllm/engine/output_processor/` — how outputs get demuxed back to per-request streams
+
+**Why this matters here.** Levels 1 and 7 use one async loop and call it batching. Production engines have 5+ concurrent loops sharing state via carefully-designed locking. Knowing the difference is the difference between "I built a batcher" and "I understand serving concurrency."
+
+**Build steps.**
+1. Add cancellation propagation to your `mini-vllm` from this level. Inject 30% of clients disconnecting mid-decode. Measure: how long do their decode slots stay zombie? Fix it; remeasure.
+2. Replace your single global lock around the block manager with sharded locks (8 shards, hash by block ID). Run the same workload; measure tail latency at high concurrency. Should improve.
+3. Read vLLM's `block_manager_v2.py`. Annotate every lock acquire/release. Confirm your understanding matches.
+
+### 17 — `spec-decode-systems`
+
+**What it is.** Topic 13 covered speculative decoding as an algorithm (acceptance rate, draft vs target). This topic covers it as a systems problem.
+
+**The hard parts.**
+- **Scheduler interaction.** Spec decoding produces a *variable* number of accepted tokens per step (sometimes 1, sometimes 4+). Continuous batching schedulers assume a fixed token-per-step. Reconciling this requires either (a) batching at a finer granularity or (b) accepting that batch slots have variable advance.
+- **Tree-based spec (EAGLE-3, Medusa).** The draft model proposes a *tree* of candidate continuations, not a sequence. Verification picks the longest accepted prefix. This means: the verifier's attention mask is non-causal in the spec token region. Custom kernels.
+- **Multi-model coordination.** Draft model on different hardware (smaller GPU, or CPU)? Then spec is a network round-trip per step — has to be hidden.
+- **Rollback semantics.** When tokens are rejected, you must restore the KV cache to the state before they were inserted. Means the cache write is *tentative* — you commit only on accept. If your KV manager has lazy/async writes, this gets thorny.
+- **Quality regression.** Spec decoding produces *exactly the same* output distribution as the target model (it's mathematically equivalent), but only if implemented correctly. Subtle bugs (off-by-one in the verification mask, wrong sampling RNG state) silently change the distribution. Test with `lm-eval-harness` before/after.
+
+**What to read.**
+- vLLM spec decoding design — `vllm/spec_decode/` directory
+- EAGLE-3 paper for the tree-spec semantics
+- The "verify once, sample many" trick — how to verify a tree of K continuations in one forward pass
+
+**Build steps.**
+1. Enable spec decoding in your vLLM stack from Level 5's bake-off. Use n-gram (no draft model needed) first.
+2. Measure: speedup, acceptance rate, ITL distribution (should have lower mean and higher variance than non-spec).
+3. Inject 1000 prompts, measure quality with `lm-eval-harness`. Confirm no regression vs non-spec.
+4. Read vLLM's tree-spec verification code; write 100 words on how the attention mask is constructed for a tree of 4 candidates.
 
 ## Project 1 — close out this week
 

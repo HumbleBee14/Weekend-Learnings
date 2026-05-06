@@ -1,0 +1,24 @@
+[project]
+name = "mini-serve"
+version = "0.1.0"
+description = "Capstone for systems-for-ml Level 1 — small, well-structured LLM inference server"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pydantic>=2.5",
+    "pydantic-settings>=2.1",
+    "transformers>=4.40",
+    "torch>=2.2",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.3",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -36,7 +36,8 @@ The trained checkpoint from this week becomes the model your Level 7 `mini-platf
 
 | # | Topic | What you build |
 |---|-------|---------------|
-| 00 | collectives-and-nccl | All-reduce / all-gather / reduce-scatter; NCCL 2.27+ features |
+| 00 | collectives-and-nccl | All-reduce / all-gather / reduce-scatter; ring vs tree algorithm; NCCL 2.27+ features; debugging hangs |
+| 00b | rdma-gpudirect-nixl | The transport layer underneath NCCL and disaggregated KV transfer — RDMA, GPUDirect, NIXL |
 | 01 | interconnects | NVLink 5 / NVL72 / IB XDR / Ultra Ethernet — the 2026 fabric |
 | 02 | data-parallel-from-scratch | DDP — what `loss.backward()` actually communicates |
 | 03 | data-loading-and-tokenization | Mosaic StreamingDataset, sequence packing, the data-pipeline ceiling |
@@ -68,10 +69,49 @@ The trained checkpoint from this week becomes the model your Level 7 `mini-platf
 
 **NCCL 2.27 Communicator Shrink.** Drop a failed/unwanted GPU from a comm dynamically. "Default" mode for planned reconfig; "Error" mode for fault recovery. This is the foundation under elastic training in 2026.
 
+**Ring all-reduce — the algorithm.** Why ring is bandwidth-optimal for large messages: with N GPUs and message size M, a ring all-reduce sends `2(N-1)/N · M` bytes per GPU — asymptotically `2M` regardless of N. Each GPU only ever sends to its right neighbor and receives from its left. It runs in `2(N-1)` steps: N-1 reduce-scatter steps + N-1 all-gather steps. The bandwidth-optimal property is what makes ring scale to thousands of GPUs.
+
+**Tree all-reduce.** Latency `O(log N)` instead of `O(N)`. Win for small messages where you're latency-bound. NCCL switches between ring and tree based on message size (and you can override with `NCCL_ALGO=Ring|Tree`).
+
+**Topology detection.** When NCCL initializes it auto-detects the topology — counting NVLinks per pair, identifying rail boundaries, deciding which GPUs to put on which ring. `NCCL_DEBUG=INFO` dumps this. Read it once on a real multi-GPU box; you'll learn more about your system in 5 minutes than from any doc.
+
+**Common NCCL hangs and how to debug them.**
+- **Rank ordering mismatch** — rank 0 calls `all_reduce(tensor_A)`; rank 1 calls `all_reduce(tensor_B)` of different shape. NCCL hangs forever. `NCCL_DEBUG=INFO` shows the mismatch.
+- **Stuck on different streams** — communication is on stream X but the dependent compute is on stream Y, with no event between them. Hangs invisibly.
+- **One rank skipped a collective** (early return on an exception). Other ranks wait forever. Always wrap your training step in `try/finally` that calls `barrier()` on exit.
+- **Network flap** — NCCL doesn't recover from transient IB failures by default. Use Communicator Shrink (NCCL 2.27+) to drop the failed rank.
+
 **Build steps.**
-1. Write a small NCCL benchmark (or use `nccl-tests`). Measure all-reduce bandwidth at varying message sizes.
+1. Write a small NCCL benchmark (or use `nccl-tests`). Measure all-reduce bandwidth at varying message sizes (1KB to 1GB). Plot it. You'll see the tree → ring crossover.
 2. Compare 2-GPU NVLink vs 2-GPU PCIe (if available). The NVLink advantage is order-of-magnitude.
-3. Read NCCL env vars: `NCCL_DEBUG=INFO`, `NCCL_ALGO=Ring|Tree`, `NCCL_CROSS_NIC` for rail-aware routing.
+3. Force a hang: deliberately call `all_reduce` with mismatched shapes on rank 0 vs rank 1. Read the `NCCL_DEBUG=INFO` output. Learn to recognize the pattern.
+4. Read NCCL env vars: `NCCL_DEBUG=INFO`, `NCCL_ALGO=Ring|Tree`, `NCCL_CROSS_NIC` for rail-aware routing, `NCCL_P2P_DISABLE` for fallback testing.
+
+### 00b — `rdma-gpudirect-nixl`
+
+**What it is.** The transport layer underneath NCCL and underneath KV-cache transfer in disaggregated inference (Level 5 referenced this; here it gets opened up).
+
+**RDMA in one paragraph.** Remote Direct Memory Access. NIC reads/writes remote host memory without involving the remote CPU. The OS kernel is bypassed entirely after queue-pair setup. Latency drops from ~10µs (TCP) to ~1µs. Bandwidth approaches line-rate. The protocol is "verbs" (post send/recv to a queue, poll a completion queue) — different programming model from sockets but the abstraction NCCL builds on.
+
+**GPUDirect RDMA.** RDMA reads/writes *GPU memory directly*, not host memory. The NIC and GPU talk over PCIe/NVLink without staging through DRAM. This is what makes inter-node all-reduce remotely fast. Without it, every GPU-to-GPU transfer would copy GPU→DRAM→NIC→DRAM→GPU.
+
+**The transport hierarchy.**
+- **Intra-node, same NVLink domain**: NVLink (1.8 TB/s on Blackwell). NCCL uses `nvlink` transport.
+- **Intra-node, separate PCIe**: GPUDirect P2P over PCIe. NCCL uses `pci` transport.
+- **Inter-node**: GPUDirect RDMA over IB or RoCE. NCCL uses `net/ib` or `net/socket` transport.
+
+**NIXL (NVIDIA Inference Xfer Library).** A 2025 library specifically for KV-cache transfer in disaggregated inference. Sits above NCCL/UCX/RDMA, exposes a higher-level API: "transfer this list of KV blocks from worker A to worker B." Used by Dynamo, llm-d, vLLM disaggregated mode. The reason it exists: NCCL is designed for collectives (everybody participates); NIXL is designed for unicast point-to-point transfers (prefill worker sends to one specific decode worker), with batching of many small transfers.
+
+**Why this matters for the curriculum.** Disaggregated inference (Level 5 Topic 08) was described abstractly. The mechanics — how bytes actually move from prefill GPU's HBM to decode GPU's HBM across a network — is RDMA + GPUDirect + NIXL. Same primitives are also why NCCL all-reduce is fast in distributed training.
+
+**Build steps (mostly reading).**
+1. Read the NCCL transport selection logic — or just run `NCCL_DEBUG=INFO` on a multi-node training job and look for `via NET/IB` vs `via P2P/IPC` in the output.
+2. Read the NIXL repo's architecture page: [github.com/NVIDIA/NIXL](https://github.com/NVIDIA/NIXL).
+3. Read llm-d's disaggregated inference docs to see how NIXL is used in practice.
+4. Read [GPUDirect RDMA docs](https://docs.nvidia.com/cuda/gpudirect-rdma/) — at minimum the architecture diagram.
+5. Write 200 words: "How does a KV block move from prefill worker's HBM to decode worker's HBM in a disaggregated vLLM setup?" Trace the path through NIXL, RDMA verbs, GPUDirect.
+
+**You won't write RDMA code this week.** That's specialist. The goal is being able to read NCCL/NIXL output and diagnose why a transfer is slow.
 
 ### 01 — `interconnects`
 
