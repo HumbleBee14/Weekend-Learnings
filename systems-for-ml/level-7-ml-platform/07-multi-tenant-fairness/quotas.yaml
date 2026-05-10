@@ -1,0 +1,36 @@
+# Per-tenant token quotas + WFQ weights.
+# `default` is the fallback for tenants not listed.
+
+tenants:
+  default:
+    input_tok_per_min: 10000
+    output_tok_per_min: 10000
+    total_tok_per_day: 5000000
+    max_concurrent_requests: 4
+    max_tokens_per_request: 2048
+    wfq_weight: 1
+
+  free:
+    input_tok_per_min: 5000
+    output_tok_per_min: 5000
+    total_tok_per_day: 1000000
+    max_concurrent_requests: 2
+    max_tokens_per_request: 1024
+    wfq_weight: 1
+
+  pro:
+    input_tok_per_min: 60000
+    output_tok_per_min: 60000
+    total_tok_per_day: 50000000
+    max_concurrent_requests: 16
+    max_tokens_per_request: 8192
+    wfq_weight: 4
+
+  enterprise:
+    input_tok_per_min: 600000
+    output_tok_per_min: 600000
+    total_tok_per_day: 1000000000
+    max_concurrent_requests: 64
+    max_tokens_per_request: 32768
+    wfq_weight: 16
+    isolation: dedicated   # signals: route to enterprise-only worker pool

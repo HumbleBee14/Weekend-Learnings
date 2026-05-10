@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: image-prepull-vllm
+  namespace: ml-platform
+spec:
+  selector:
+    matchLabels: {app: image-prepull-vllm}
+  template:
+    metadata:
+      labels: {app: image-prepull-vllm}
+    spec:
+      # Run on GPU nodes only; adjust selector to your cluster.
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      initContainers:
+        - name: prepull
+          image: vllm/vllm-openai:v0.11.0
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "echo image cached on $(hostname)"]
+      containers:
+        # Pause container keeps the DS running so the image stays cached.
+        - name: pause
+          image: registry.k8s.io/pause:3.10
+          resources:
+            limits:    {memory: 8Mi, cpu: 10m}
+            requests:  {memory: 8Mi, cpu: 10m}

@@ -1,0 +1,74 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: vllm-scaler
+  namespace: ml-platform
+spec:
+  scaleTargetRef:
+    name: vllm-deployment
+  minReplicaCount: 1
+  maxReplicaCount: 8
+  pollingInterval: 5      # seconds; KEDA polls Prometheus
+  cooldownPeriod: 120     # seconds before scale-down after metric drops below threshold
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 25
+              periodSeconds: 60
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+            - type: Percent
+              value: 100      # double on scale-up to react fast
+              periodSeconds: 30
+            - type: Pods
+              value: 4
+              periodSeconds: 30
+          selectPolicy: Max
+  triggers:
+    # Primary signal: queue depth.
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.observability.svc.cluster.local:9090
+        query: avg(vllm:num_requests_waiting)
+        threshold: "3"
+        activationThreshold: "1"
+
+    # Secondary signal: KV cache pressure.
+    # If average GPU KV usage is >85%, add replicas — we're about to OOM.
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus.observability.svc.cluster.local:9090
+        query: avg(vllm:gpu_cache_usage_perc)
+        threshold: "85"
+
+    # Optional cron pre-scale for known peak window (diurnal pattern).
+    - type: cron
+      metadata:
+        timezone: UTC
+        start: "0 13 * * 1-5"     # 13:00 UTC weekdays — pre-warm before peak
+        end: "0 21 * * 1-5"
+        desiredReplicas: "4"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vllm-scaler-notes
+  namespace: ml-platform
+data:
+  README: |
+    Tuning notes:
+      threshold: 3   -> avg queue depth past which we add replicas.
+                        Halve to be more aggressive, double to be calmer.
+      polling: 5s    -> KEDA -> Prometheus poll cadence.
+      cooldown: 120s -> hysteresis on scale-down.
+
+    Run-book:
+      - To inspect: kubectl get scaledobject vllm-scaler -n ml-platform
+      - HPA created by KEDA: kubectl get hpa keda-hpa-vllm-scaler -n ml-platform
+      - Force re-evaluation: kubectl annotate scaledobject vllm-scaler \
+          -n ml-platform autoscaling.keda.sh/paused=false --overwrite

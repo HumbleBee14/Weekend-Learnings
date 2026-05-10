@@ -1,0 +1,55 @@
+# engines.yaml — bake-off configuration.
+# Start each server out-of-band before running runner.py.
+# Per-engine startup commands documented in CONCEPTS.md and per-topic READMEs.
+
+engines:
+  - name: vllm
+    base_url: http://localhost:8000/v1
+    model_id: Qwen/Qwen2.5-7B-Instruct
+    quant: fp8
+    label: "vLLM 0.11 / FP8 / Hopper"
+
+  - name: sglang
+    base_url: http://localhost:8001/v1
+    model_id: Qwen/Qwen2.5-7B-Instruct
+    quant: fp8
+    label: "SGLang 0.4 / FP8 / Hopper"
+
+  - name: trtllm
+    base_url: http://localhost:8002/v1
+    model_id: Qwen/Qwen2.5-7B-Instruct
+    quant: fp8
+    label: "TRT-LLM 1.x / FP8 / Hopper"
+
+  - name: llamacpp
+    base_url: http://localhost:8003/v1
+    model_id: local-gguf
+    quant: q4_k_m
+    label: "llama.cpp / Q4_K_M / CUDA"
+
+  - name: minivllm
+    base_url: http://localhost:8004/v1
+    model_id: mini-vllm
+    quant: bf16
+    label: "your mini-vllm from Level 4"
+
+workloads:
+  - name: w1_short
+    path: workloads/short.jsonl
+    concurrency: 8
+    duration_s: 60
+
+  - name: w2_long
+    path: workloads/long.jsonl
+    concurrency: 8
+    duration_s: 60
+
+  - name: w3_prefix_heavy
+    path: workloads/prefix-heavy.jsonl
+    concurrency: 16
+    duration_s: 90
+
+  - name: w4_memory_constrained
+    path: workloads/memory-constrained.jsonl
+    concurrency: 32
+    duration_s: 90

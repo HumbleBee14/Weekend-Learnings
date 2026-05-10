@@ -1,0 +1,21 @@
+# Regression gate for mini-platform.
+#
+# Each rule compares the candidate checkpoint's score on a benchmark to the
+# currently-serving model's score. ge_rel(prev, 0.99) means "candidate must
+# be at least 99% of prev". required_pass = how many rules must pass for
+# the candidate to be approved for serving.
+
+rules:
+  - benchmark: mmlu
+    metric: acc
+    rule: ge_rel(prev, 0.99)
+
+  - benchmark: gsm8k
+    metric: acc
+    rule: ge_rel(prev, 0.97)
+
+  - benchmark: humaneval
+    metric: pass@1
+    rule: ge_rel(prev, 0.95)
+
+required_pass: 3

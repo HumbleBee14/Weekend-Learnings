@@ -1,0 +1,67 @@
+# Minimal torchtitan training config. Fits 2× consumer GPUs; trains a tiny
+# Llama-style model with FSDP2 + (optional) TP=1, async DCP checkpointing.
+#
+# Usage:
+#   git clone https://github.com/pytorch/torchtitan
+#   cd torchtitan && pip install -e .
+#   torchrun --standalone --nproc_per_node=2 \
+#       -m torchtitan.train --job.config_file ../mini_titan_config.toml
+#
+# Adapt paths to wherever you cloned and where you store data.
+
+[job]
+description = "mini llama for level-6 weekend run"
+dump_folder = "./outputs/mini_titan"
+print_args = true
+
+[profiling]
+enable_profiling = true
+profile_freq = 50
+save_traces_folder = "./outputs/mini_titan/traces"
+enable_memory_snapshot = false
+
+[metrics]
+log_freq = 10
+
+[model]
+name = "llama3"
+flavor = "debugmodel"           # smaller than 8B, used for unit-test-scale runs
+norm_type = "rmsnorm"
+tokenizer_path = "./assets/tokenizer/tokenizer.model"
+
+[optimizer]
+name = "AdamW"
+lr = 3.0e-4
+
+[training]
+batch_size = 8
+seq_len = 1024
+warmup_steps = 50
+max_norm = 1.0
+steps = 200
+data_parallel_replicate_degree = 1
+data_parallel_shard_degree = -1   # -1 = use all available DP ranks
+tensor_parallel_degree = 1        # bump to 2 if NVLink + 4+ GPUs
+compile = true
+dataset = "c4_test"               # built-in micro dataset for smoke tests
+
+[experimental]
+context_parallel_degree = 1
+pipeline_parallel_degree = 1
+pipeline_parallel_schedule = "1F1B"
+enable_async_tensor_parallel = false
+
+[checkpoint]
+enable_checkpoint = true
+folder = "./outputs/mini_titan/checkpoint"
+interval_type = "steps"
+interval = 100
+async_mode = "async"             # async DCP — see Topic 13
+keep_latest_k = 2
+
+[float8]
+enable_float8_linear = false      # set true on Hopper/Blackwell to try FP8
+
+[comm]
+init_timeout_seconds = 300
+train_timeout_seconds = 100

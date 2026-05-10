@@ -342,7 +342,7 @@ engine-bakeoff/
     └── bakeoff.md              # ← THE deliverable
 ```
 
-`reports/bakeoff.md` is the artifact. It's one of the two strongest portfolio pieces in the entire curriculum (the other is `mini-platform` from Project 3).
+`reports/bakeoff.md` is the artifact. It's one of the two heaviest deliverables in the curriculum (the other is `mini-platform` from Project 3).
 
 ## Definition of done
 

@@ -1,0 +1,80 @@
+# (engine x quantization x hardware) cost cells for a 70B-class model.
+# Numbers below are illustrative; replace with your Project 2 bake-off measurements.
+
+cells:
+  - name: vllm-bf16-h100
+    engine: vllm
+    quant: bf16
+    hardware: H100
+    gpu_dollar_per_hour: 2.50
+    input_tok_per_s: 4500
+    output_tok_per_s: 95
+    warm_pool_replicas: 1.0
+    kv_tier_dollar_per_hour: 0.10
+    obs_dollar_per_hour: 0.05
+
+  - name: vllm-fp8-h100
+    engine: vllm
+    quant: fp8
+    hardware: H100
+    gpu_dollar_per_hour: 2.50
+    input_tok_per_s: 8200
+    output_tok_per_s: 165
+    warm_pool_replicas: 1.0
+    kv_tier_dollar_per_hour: 0.10
+    obs_dollar_per_hour: 0.05
+
+  - name: vllm-nvfp4-b200
+    engine: vllm
+    quant: nvfp4
+    hardware: B200
+    gpu_dollar_per_hour: 6.00
+    input_tok_per_s: 19000
+    output_tok_per_s: 380
+    warm_pool_replicas: 1.0
+    kv_tier_dollar_per_hour: 0.10
+    obs_dollar_per_hour: 0.05
+
+  - name: sglang-fp8-h100
+    engine: sglang
+    quant: fp8
+    hardware: H100
+    gpu_dollar_per_hour: 2.50
+    input_tok_per_s: 9000
+    output_tok_per_s: 170
+    warm_pool_replicas: 1.0
+    kv_tier_dollar_per_hour: 0.10
+    obs_dollar_per_hour: 0.05
+
+  - name: trtllm-fp8-h100
+    engine: tensorrt-llm
+    quant: fp8
+    hardware: H100
+    gpu_dollar_per_hour: 2.50
+    input_tok_per_s: 9500
+    output_tok_per_s: 180
+    warm_pool_replicas: 1.0
+    kv_tier_dollar_per_hour: 0.10
+    obs_dollar_per_hour: 0.05
+
+  - name: vllm-bf16-mi300x
+    engine: vllm
+    quant: bf16
+    hardware: MI300X
+    gpu_dollar_per_hour: 2.20
+    input_tok_per_s: 4200
+    output_tok_per_s: 120
+    warm_pool_replicas: 1.0
+    kv_tier_dollar_per_hour: 0.10
+    obs_dollar_per_hour: 0.05
+
+  - name: llama-cpp-q4-cpu
+    engine: llama.cpp
+    quant: q4_K_M
+    hardware: 64-core-EPYC
+    gpu_dollar_per_hour: 0.40
+    input_tok_per_s: 240
+    output_tok_per_s: 40
+    warm_pool_replicas: 0.0
+    kv_tier_dollar_per_hour: 0.0
+    obs_dollar_per_hour: 0.0

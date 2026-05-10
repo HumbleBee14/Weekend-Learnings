@@ -79,7 +79,7 @@ The trained checkpoint from this week becomes the model your Level 7 `mini-platf
 
 **Tree all-reduce.** Latency `O(log N)` instead of `O(N)`. Win for small messages where you're latency-bound. NCCL switches between ring and tree based on message size (and you can override with `NCCL_ALGO=Ring|Tree`).
 
-**Topology detection.** When NCCL initializes it auto-detects the topology — counting NVLinks per pair, identifying rail boundaries, deciding which GPUs to put on which ring. `NCCL_DEBUG=INFO` dumps this. Read it once on a real multi-GPU box; you'll learn more about your system in 5 minutes than from any doc.
+**Topology detection.** When NCCL initializes it auto-detects the topology — counting NVLinks per pair, identifying rail boundaries, deciding which GPUs to put on which ring. `NCCL_DEBUG=INFO` dumps this. Reading it once on a real multi-GPU box reveals more about the system than any doc — what NVLink pairs got found, which ring topology NCCL picked, where the bottlenecks sit.
 
 **Common NCCL hangs and how to debug them.**
 - **Rank ordering mismatch** — rank 0 calls `all_reduce(tensor_A)`; rank 1 calls `all_reduce(tensor_B)` of different shape. NCCL hangs forever. `NCCL_DEBUG=INFO` shows the mismatch.

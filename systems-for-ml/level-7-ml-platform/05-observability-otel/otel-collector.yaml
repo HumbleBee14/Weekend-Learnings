@@ -1,0 +1,73 @@
+# OTel Collector config for mini-platform.
+# Receives OTLP from vLLM/gateway/router, redacts, exports to Tempo + Prometheus.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    send_batch_size: 1024
+    timeout: 5s
+
+  # Redaction — strip prompt bodies and PII-prone attributes before export.
+  attributes/redact:
+    actions:
+      - key: gen_ai.prompt
+        action: delete
+      - key: gen_ai.completion
+        action: delete
+      - key: http.request.body
+        action: delete
+
+  # Enrich every signal with cluster/region/env.
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: mini-platform
+        action: upsert
+      - key: service.namespace
+        value: ml-platform
+        action: upsert
+
+  # Tail sampling: keep all errors + a 10% sample of the rest.
+  tail_sampling:
+    decision_wait: 10s
+    policies:
+      - name: errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: random-10pct
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: mini_platform
+
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [attributes/redact, resource, tail_sampling, batch]
+      exporters: [otlp/tempo, debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [prometheus, debug]

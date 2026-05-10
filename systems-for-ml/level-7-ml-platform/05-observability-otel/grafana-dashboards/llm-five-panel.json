@@ -1,0 +1,53 @@
+{
+  "title": "LLM five-panel (mini-platform)",
+  "uid": "llm-five-panel",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "TTFT p50 / p95 / p99",
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum(rate(vllm:time_to_first_token_seconds_bucket[1m])) by (le))", "legendFormat": "p50"},
+        {"expr": "histogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[1m])) by (le))", "legendFormat": "p95"},
+        {"expr": "histogram_quantile(0.99, sum(rate(vllm:time_to_first_token_seconds_bucket[1m])) by (le))", "legendFormat": "p99"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Throughput (output tok/s)",
+      "targets": [
+        {"expr": "sum(rate(vllm:generation_tokens_total[1m]))", "legendFormat": "tok/s"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+    },
+    {
+      "type": "timeseries",
+      "title": "Queue depth (num_requests_waiting) — autoscaler signal",
+      "targets": [
+        {"expr": "sum(vllm:num_requests_waiting)", "legendFormat": "waiting"},
+        {"expr": "sum(vllm:num_requests_running)", "legendFormat": "running"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "GPU SOL — tensor pipe active %",
+      "targets": [
+        {"expr": "avg(DCGM_FI_PROF_PIPE_TENSOR_ACTIVE)", "legendFormat": "tensor"},
+        {"expr": "avg(DCGM_FI_PROF_SM_ACTIVE)", "legendFormat": "sm"},
+        {"expr": "avg(DCGM_FI_PROF_DRAM_ACTIVE)", "legendFormat": "dram"}
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "KV cache fill % (HBM + LMCache DRAM tier)",
+      "targets": [
+        {"expr": "avg(vllm:gpu_cache_usage_perc)", "legendFormat": "GPU HBM"},
+        {"expr": "avg(vllm:cpu_cache_usage_perc)", "legendFormat": "CPU DRAM"}
+      ],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}
+    }
+  ]
+}

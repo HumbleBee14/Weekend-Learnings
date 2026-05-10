@@ -399,8 +399,8 @@ mini-platform/
 - [ ] OTel GenAI semconv spans flow into your observability stack; Grafana dashboards render the canonical metrics.
 - [ ] Per-tenant fairness via WFQ + token rate limits is enforced and demonstrated.
 - [ ] You have all six graphs (G12–G17) with Setup/Observation/Insight captions.
-- [ ] `reports/platform.md` is written as a systems paper; one of your two strongest portfolio artifacts.
-- [ ] You can answer fluently: *"Walk me through how you'd serve a 70B model with 1000 QPS and a 100ms TTFT SLA on H100s."*
+- [ ] `reports/platform.md` is written as a systems paper; one of the two heaviest deliverables in the curriculum.
+- [ ] You can walk through end-to-end how a 70B model gets served at 1000 QPS with a 100ms TTFT SLA on H100s — every layer, every decision.
 
 ## Resources
 
