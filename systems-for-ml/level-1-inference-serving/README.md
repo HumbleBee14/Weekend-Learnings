@@ -1,6 +1,34 @@
 # Level 1 — Inference Serving (Build Your Own)
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: **Project 1 — `mini-serve`** (first half)
+>
+> Textbook companion (academic): [Reddi Vol 1 — *Serving* chapter](https://mlsysbook.ai/) — canonical concept framing.
+>
+> Practitioner companion: [Kiely, *Inference Engineering*](../references/Inference-Engineering-Kiely-2025.pdf) **Ch 0–1** — the discipline (Ch 0) and the prerequisites every inference engineer needs (Ch 1: scale, online vs offline, latency percentiles, end-to-end metrics). Strongest single read for this level. Open the PDF, ~30 pages.
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — the Week goal + Where this fits
+  Day 1 (45m)  ──►  Kiely Ch 0 + Ch 1  (references/Inference-Engineering-Kiely-2025.pdf)
+                    ── strongest single read; gives you the vocabulary
+  Day 1 → 5    ──►  Topics 01 → 06, in order. For each topic:
+                       1. Open the topic folder's  README.md  (the launcher)
+                       2. Read its  CONCEPTS.md   (the depth)
+                       3. Run/extend the code in the folder
+                       4. Mark it done; move on
+  Day 5-7      ──►  Project 1 first half — start the capstone
+                    at  _capstone-mini-serve/   (~450 LOC scaffold, extend it)
+                    Generate G1 + G2 from the project graph list
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md` (closest to what you're doing)
+2. Kiely Ch 0–1 (practitioner framing)
+3. [Reddi *Serving* chapter](https://mlsysbook.ai/) (academic framing)
+4. The actual engine source code if you need ground truth (vLLM, etc.)
+
+**Don't skip ahead.** The whole point of Topics 03–04 is to feel naive batching break. If you reach for vLLM now, you'll skip the lesson Level 4 needs you to have already learned.
 
 ## Week goal
 

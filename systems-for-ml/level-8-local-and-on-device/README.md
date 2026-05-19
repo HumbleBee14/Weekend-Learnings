@@ -1,6 +1,33 @@
 # Level 8 — Local & On-Device Intelligence
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: **Project 4 — `local-agent`**
+>
+> Textbook companion: [Reddi Vol 2 — *Edge Intelligence* and *On-Device Learning*](https://mlsysbook.ai/) — strongest overlap between Reddi and this repo. Reddi covers TinyML/embedded/Arduino-class edge devices; this level covers Apple Silicon UMA + 70B-class LLMs on a laptop. The systems lessons rhyme — bandwidth budgets, quantization, KV pressure — the hardware doesn't.
+>
+> Practitioner companion: [Kiely, *Inference Engineering*](../references/Inference-Engineering-Kiely-2025.pdf) **§3.5** (Local Inference) is brief (2 pages); this level is the depth. Kiely's value here is the cloud-side framing — *this* level is where you become the on-device expert.
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — Apple Silicon track, parallel to L5-7
+  Day 1 (1h)   ──►  Reddi *Edge Intelligence* + *On-Device Learning* chapters
+                    ── canonical edge framing (TinyML to mobile)
+                  + Kiely §3.5 ── how the cloud team thinks about local
+  Day 1 → 6    ──►  Topics 01 → 16, in order. For each topic:
+                       1. Open the topic folder's  README.md
+                       2. Read its  CONCEPTS.md
+                       3. Run on your Mac (this level is Mac-first)
+  Day 6-7      ──►  Project 4 — local-agent — agentic loop on Apple Silicon
+                    Ship reports/local.md with G18-G20.
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md`
+2. Reddi *Edge Intelligence* (academic framing)
+3. MLX docs ([ml-explore/mlx](https://github.com/ml-explore/mlx)) — the framework, primary source
+4. llama.cpp source — the Metal/Accelerate backends
+
+**Compute:** Your own Mac (M-series strongly recommended). No cloud spend.
 
 ## Week goal
 

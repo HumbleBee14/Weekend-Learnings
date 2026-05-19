@@ -1,6 +1,36 @@
 # Level 2 — CUDA & GPU Programming
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: feeds Project 1 (KV cache work in Level 4) and Project 2 (engine internals)
+>
+> Textbook companion (academic): [Reddi Vol 1 — *AI Acceleration*](https://mlsysbook.ai/) for the canonical taxonomy.
+>
+> Practitioner companion: [Kiely, *Inference Engineering*](../references/Inference-Engineering-Kiely-2025.pdf) **Ch 3** (Hardware) — Hopper / Ada / Blackwell / Rubin generations, MIG, multi-GPU instances. Pair Ch 4 §4.1 (CUDA kernels for inference, kernel fusion) with this level's Topics 02–04.
+>
+> For kernel-author depth, see the sibling [`compiler-and-kernels/`](../../compiler-and-kernels/) track — this level intentionally stops at "literate," not "specialist."
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — Week goal + Where this fits
+  Day 1 (1h)   ──►  Kiely Ch 3 (Hardware)  +  Ch 4 §4.1 (CUDA kernels for inference)
+                    ── gives you the 2026 hardware vocabulary (Hopper/Ada/Blackwell/Rubin)
+                       and what kernel fusion buys you
+  Day 1 → 5    ──►  Topics 01 → 06, in order. For each topic:
+                       1. Open the topic folder's  README.md  (the launcher)
+                       2. Read its  CONCEPTS.md   (the depth)
+                       3. Run/write the kernel code (CUDA C++ or Triton)
+                       4. Compare your numbers to the expected output
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md`
+2. Kiely Ch 3 (hardware) or Ch 4 §4.1 (CUDA)
+3. [Reddi *AI Acceleration* chapter](https://mlsysbook.ai/) for the canonical taxonomy
+4. NVIDIA's CUDA C++ Programming Guide (the actual spec)
+
+**Want to go deeper?** This level intentionally stops at "literate." For kernel-author depth (writing custom Triton kernels, CUTLASS, SASS tuning), go to the sibling [`compiler-and-kernels/`](../../compiler-and-kernels/) track *after* finishing Level 9.
+
+**Compute:** Colab T4 (free tier) is fine for everything in this level.
 
 ## Week goal
 

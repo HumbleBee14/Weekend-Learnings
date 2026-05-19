@@ -3,6 +3,7 @@
 ## Files
 
 - `CONCEPTS.md` — `$/Mtok` decomposition, GPU utilisation as a *diagnostic* not a target, vertical vs horizontal scaling (G14), FinOps for AI.
+- `CAPACITY-PLANNING.md` — the reverse direction: given a target SLO (e.g., "200 QPS at 2s p99"), derive the GPU count. Walks the five inputs, the prefill/decode/concurrency split, p99 headroom, and a worked-example table across config choices.
 - `cost_calculator.py` — turns a (engine × quant × hardware) matrix into a sorted `$/Mtok` table.
 - `matrix.yaml` — illustrative cells. Replace with your Project 2 bake-off measurements.
 

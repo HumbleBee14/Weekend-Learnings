@@ -1,6 +1,35 @@
 # Level 3 — GPU Profiling & Bottleneck Analysis
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: profiles `mini-serve` from Project 1; the case study from Topic 07 becomes evidence for the Level 4 fixes.
+>
+> Textbook companion: [Reddi Vol 1 — *Benchmarking AI*](https://mlsysbook.ai/) for the canonical framing of measurement.
+>
+> Practitioner companion: [Kiely, *Inference Engineering*](../references/Inference-Engineering-Kiely-2025.pdf) **§4.5** (Performance Benchmarking and Load Testing) + **§2.4** (Arithmetic Intensity / Ops:byte Ratio) — the roofline math practitioners actually use.
+>
+> This level is **profiling-as-diagnostic** (find the bottleneck, place on a roofline, pick the next fix). For **profiling-as-microscope** at kernel-author depth, see [`compiler-and-kernels/level-1-triton-deep-dive/`](../../compiler-and-kernels/level-1-triton-deep-dive/).
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — the four diagnostic questions below
+  Day 1 (1h)   ──►  Kiely §2.4 (arithmetic intensity / ops:byte)
+                  + Reddi *Benchmarking* chapter ── the why behind the roofline
+  Day 1 → 5    ──►  Topics 01 → 07, in order. For each topic:
+                       1. Open the topic folder's  README.md  (the launcher)
+                       2. Read its  CONCEPTS.md   (the depth)
+                       3. Run the profiler against a real workload
+                       4. Capture a trace + write down what you learned from it
+  Day 5-7      ──►  Topic 07 (optimization case study) is the level's pay-off
+                    ── a full diagnose → hypothesise → fix → re-measure loop
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md`
+2. Kiely §4.5 (practitioner tips on profiling), §2.4 (roofline math)
+3. Reddi *Benchmarking* (academic framing)
+4. NVIDIA Nsight Systems / Nsight Compute documentation (the actual tools)
+
+**Compute:** Colab GPU for Nsight (free tier OK). CPU profiling works locally.
 
 ## Week goal
 

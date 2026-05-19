@@ -1,6 +1,33 @@
 # Level 9 — Compiler Stack Awareness (High-Level Tour)
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · No project — reading + small writeup only
+>
+> Textbook companion: [Reddi Vol 1 — *AI Acceleration*](https://mlsysbook.ai/) for the hardware-side framing. Kiely doesn't cover compilers. If this level sparks interest, the sibling [`compiler-and-kernels/`](../../compiler-and-kernels/) track is the dedicated specialization path (Triton deep-dive, CUTLASS/CuTe-DSL, MLIR in practice, StableHLO/XLA).
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read the Scope note below ── this is an awareness tour
+  Day 1-2 (3h) ──►  Reddi *AI Acceleration* chapter
+                  + skim "What I Talk About When I Talk About IRs" (Lattner)
+                  + skim the MLIR project paper (Lattner et al.)
+  Day 2 → 5    ──►  Topics 01 → 08, mostly read-only. For each topic:
+                       1. Open the topic folder's  README.md
+                       2. Read its  CONCEPTS.md
+                       3. Trace one model through torch.compile  (Topic 02)
+  Day 6-7      ──►  Optional: write up one short post (~1 page) tracing one
+                    model through the lowering stack. No project repo.
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md`
+2. Reddi *AI Acceleration*
+3. PyTorch Dynamo / Inductor source for the torch.compile path
+4. MLIR project docs for the IR side
+
+**If you want to go deeper:** the sibling [`compiler-and-kernels/`](../../compiler-and-kernels/) track is months of dedicated study (Triton deep-dive, CUTLASS/CuTe-DSL, MLIR in practice, StableHLO/XLA, AI-assisted kernels). Don't try to cram it here.
+
+**Compute:** Reading and small experiments. CPU is fine.
 
 ## Scope note (read this first)
 

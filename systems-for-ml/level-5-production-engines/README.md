@@ -1,6 +1,36 @@
 # Level 5 — Production Inference Engines
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: **Project 2 — `engine-bakeoff`**
+>
+> Textbook companion (academic): [Reddi Vol 1 — *Serving*](https://mlsysbook.ai/) for the canonical serving taxonomy, plus [Reddi Vol 2 — *Distributed Inference*](https://mlsysbook.ai/) for Topics 08–09.
+>
+> Practitioner companion: [Kiely, *Inference Engineering*](../references/Inference-Engineering-Kiely-2025.pdf) **Ch 4** (Software) is the strongest fit in the entire book for this level — §4.3 covers vLLM / SGLang / TRT-LLM as a comparative table, §4.4 covers NVIDIA Dynamo, §4.5 covers benchmarking tooling and tips. **Ch 5 §5.5** covers disaggregation (Topics 08–09). **Ch 6** covers the modality topics (VLM Topic 14; embeddings/ASR/TTS/image-gen/video-gen are Kiely-only depth — not in this repo today). Read Ch 4 + Ch 6 before the bake-off.
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — the week is Project 2 (engine-bakeoff)
+  Day 1 (1.5h) ──►  Kiely Ch 4 (Software)  ── the comparative table on p106
+                    is the mental model you'll defend at the end of the week.
+                    + Kiely Ch 5 §5.5 for Topics 08-09 (disaggregation)
+                    + Kiely Ch 6 for modality topics (13-14)
+  Day 1 → 5    ──►  Topics 01 → 15, in order. For each topic:
+                       1. Open the topic folder's  README.md
+                       2. Read its  CONCEPTS.md
+                       3. Stand up the engine, hit it with your Project 1 load harness
+                       4. Capture numbers — they feed the bake-off report
+  Day 5-7      ──►  Project 2 itself — Topic 07 (engine-bake-off) is the deliverable.
+                    Ship reports/bakeoff.md as a systems-paper-style eval doc
+                    with G6-G9 + a defended recommendation.
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md`
+2. Kiely Ch 4 (the practitioner comparison), Ch 5 §5.5 (disagg), Ch 6 (modalities)
+3. [Reddi Vol 1 *Serving*](https://mlsysbook.ai/) + [Reddi Vol 2 *Distributed Inference*](https://mlsysbook.ai/)
+4. **The engine source itself** — Level 5 is where reading vLLM/SGLang/TRT-LLM code becomes essential. Each topic's README links the right files.
+
+**Compute:** RunPod / Lambda / Vast.ai bursts. Budget ~$30–50 for the week. A single L4 or A10 (≈$0.40/hr) gets you through most of it.
 
 ## Week goal
 
@@ -50,6 +80,7 @@ Several things have shifted enough that older guides are misleading:
 | 12 | speculative-decoding-in-prod | EAGLE-3 in vLLM, end-to-end gain |
 | 13 | onnx-runtime-and-tensorrt | The non-LLM-specific runtime path: ONNX Runtime + TensorRT (the runtime, not TRT-LLM). Where ORT/TRT win, where they don't, when you'd reach for them. |
 | 14 | vlm-serving | Vision-language model inference: vision encoder + cross-attention + decoder. Different KV cache shape, different batching constraints, different prefill cost. Qwen2.5-VL / Pixtral / LLaVA. |
+| 15 | triton-inference-server | The framework-agnostic outer wrapper that hosts vLLM, ORT, and TRT side-by-side. Ensemble graphs, dynamic batching for non-LLM models, the foundation of NVIDIA NIM. Every JD listing vLLM also lists Triton IS — this is why. |
 
 ### 01 — `vllm-hello-world`
 

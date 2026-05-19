@@ -1,6 +1,37 @@
 # Level 6 — Distributed Training & Networking
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: first half of **Project 3 — `mini-platform`**
+>
+> Textbook companion: [Reddi Vol 2 — *Foundations of Scale* (Infrastructure / Storage / Communication) and *Distributed Training*](https://mlsysbook.ai/). Read the *Communication* chapter before Topic 00 (collectives) if networking is new to you — or skim the [Networking primer](NETWORKING-PRIMER.md) below.
+>
+> Practitioner companion: **Kiely doesn't cover training** — his book is inference-only. For distributed training in practitioner form, the [torchtitan repo + paper](https://github.com/pytorch/torchtitan) and [NVIDIA Megatron-Core docs](https://docs.nvidia.com/megatron-core/) are the closest equivalents.
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — week is the first half of Project 3
+  Day 1 (30m)  ──►  Networking primer below  ── if RDMA/NCCL/NVLink are fuzzy
+                    (skip if you've debugged production networking before)
+  Day 1 (1h)   ──►  Reddi Vol 2 *Communication* + *Distributed Training*
+                    ── the why behind every collective and every parallelism axis
+  Day 1 → 6    ──►  Topics 00 → 15, in order. For each topic:
+                       1. Open the topic folder's  README.md
+                       2. Read its  CONCEPTS.md
+                       3. Run the code (some topics need 2+ GPUs)
+                       4. Topics 11-13 (tail latency / failure injection / checkpointing)
+                          ── this is where production teams spend most of their pain
+  Day 6-7      ──►  Train a small model with FSDP2, ship the checkpoint to Level 7.
+                    Capture G10 (throughput vs interconnect) + G11 (p99 timeline
+                    with node-failure marker).
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md`
+2. [Networking primer](NETWORKING-PRIMER.md) (for transport-layer questions)
+3. Reddi Vol 2 *Communication* / *Distributed Training*
+4. torchtitan source (PyTorch-native) or Megatron-Core source (NVIDIA-native)
+
+**Compute:** Conceptual topics on CPU. Real runs need multi-GPU — Colab Pro (2× T4), RunPod (2× A10 ≈ $1.50/hr), or Lambda (A100 pair ≈ $3-4/hr).
 
 ## Week goal
 
@@ -52,7 +83,19 @@ The trained checkpoint from this week becomes the model your Level 7 `mini-platf
 | 12 | failure-injection | Kill a node mid-step, recover via Comm Shrink |
 | 13 | checkpointing-async | DCP async save, peer replication, Goodput math |
 | 14 | ray-and-multi-node | Job orchestration, world-size management |
-| 15 | rl-post-training-bridge | Brief — vLLM/SGLang as rollout backend; sets up Level 7 |
+| 15 | rl-post-training-bridge | Bridge — vLLM/SGLang as rollout backend; HANDS-ON.md has a runnable TRL+vLLM GRPO smoke test |
+
+## Networking primer for ML systems
+
+If you're coming from a pure-Python / single-machine background and the words *RDMA*, *NCCL*, *NVLink*, *all-reduce*, or *bisection bandwidth* are fuzzy — read [`NETWORKING-PRIMER.md`](NETWORKING-PRIMER.md) before Topic 00. It's ~20 minutes and covers:
+
+- Bandwidth vs latency vs topology vs CPU-involvement (the four numbers that decide everything)
+- The 2026 cluster hierarchy: HBM → NVLink → NVL72 → InfiniBand → Ethernet
+- TCP vs RDMA — why the wrong choice costs ~3× throughput
+- NCCL ring vs tree, GPUDirect P2P/RDMA/Storage
+- Why synchronous distributed training is rate-limited by the slowest link
+
+If you've already debugged a slow `scp`, used `iperf3`, or run a Kafka cluster, you can skip the primer and start at Topic 00 directly.
 
 ### 00 — `collectives-and-nccl`
 

@@ -1,6 +1,38 @@
 # Level 7 — ML Platform & Production (Capstone)
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: closes **Project 3 — `mini-platform`**
+>
+> Textbook companion (academic): [Reddi Vol 1 — *MLOps*](https://mlsysbook.ai/) and [Reddi Vol 2 — *Ops at Scale / Robust AI / Privacy & Security*](https://mlsysbook.ai/) for the canonical *concepts* (lifecycle, observability principles, governance).
+>
+> Practitioner companion: [Kiely, *Inference Engineering*](../references/Inference-Engineering-Kiely-2025.pdf) **Ch 7** (Production) — the closest match to this level in any book published. §7.1 containers/NIMs, §7.2 autoscaling/cold-starts/routing/scale-to-zero, §7.3 multi-cloud/GPU procurement/geo-load-balancing/reliability/compliance, §7.4 zero-downtime deploy/cost/observability, §7.5 client-side concerns. Read Ch 7 before the capstone — it tells you what production teams at Baseten/Together/Anyscale actually face.
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — the capstone level
+  Day 1 (2h)   ──►  Kiely Ch 7 (Production) in full  ── the closest match in
+                    any published book to what you're about to build
+                    + Reddi Vol 1 *MLOps* + Vol 2 *Ops at Scale*  ── academic framing
+  Day 1 → 5    ──►  Topics 01 → 16, in order. For each topic:
+                       1. Open the topic folder's  README.md
+                       2. Read its  CONCEPTS.md
+                       3. Implement the box from the platform architecture
+                          (Topic 01 names which box each topic owns)
+                       4. Topic 13 includes CAPACITY-PLANNING.md ── the senior-eng
+                          GPU-sizing math, read it carefully
+  Day 5-7      ──►  Project 3 close-out — stitch L6 trained model + best L5 engine
+                    + your router + autoscaler + Prometheus dashboards
+                    Run break-it list (traffic skew, regression gate, cold start, etc.)
+                    Ship reports/platform.md as a systems paper with G12-G17.
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md`
+2. Kiely Ch 7 §subsection
+3. Reddi Vol 1 *MLOps* / Vol 2 *Ops at Scale*
+4. vLLM Production Stack reference, llm-d arch docs, NVIDIA Dynamo blog
+
+**Compute:** All CPU — system design + orchestration code. Optionally point it at Level 5 engines for a real end-to-end demo.
 
 ## Week goal
 

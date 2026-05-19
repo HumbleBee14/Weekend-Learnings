@@ -1,6 +1,36 @@
 # Level 4 — LLM Optimization Techniques
 
 > Outer reference: [`systems-for-ml/README.md`](../README.md) · Project: closes **Project 1 (`mini-vllm`)**
+>
+> Textbook companion (academic): [Reddi Vol 1 — *Efficient AI* and *Model Optimizations*](https://mlsysbook.ai/) for the *why* (memory hierarchy, quant taxonomy, sparsity).
+>
+> Practitioner companion: [Kiely, *Inference Engineering*](../references/Inference-Engineering-Kiely-2025.pdf) **Ch 5** (Techniques) — the strongest pair for this level. Maps almost 1:1 to our topics: §5.1 quantization (number formats, approaches, quality), §5.2 speculative decoding (draft/Medusa/EAGLE/n-gram), §5.3 caching (prefix, KV placement, cache-aware routing, long context), §5.4 parallelism, §5.5 disaggregation. Read Ch 5 *before* you implement Topics 01–14.
+
+## How to study this level
+
+```
+  Day 0 (15m)  ──►  Read this README — densest level, plan your week
+  Day 1 (2h)   ──►  Kiely Ch 5 (Techniques) in full
+                    + Reddi *Efficient AI* / *Model Optimizations*
+                    ── the practitioner + academic framing for everything below
+  Day 1 → 6    ──►  Topics 01 → 14, in order. For each topic:
+                       1. Open the topic folder's  README.md  (the launcher)
+                       2. Read its  CONCEPTS.md   (the depth)
+                       3. Run/implement the code
+                       4. Every optimization ends with a quality check  (lm-eval-harness)
+                          ── if you didn't measure quality, you didn't optimize, you guessed
+  Day 6-7      ──►  Closes Project 1 — drop your paged KV cache (Topic 10)
+                    into mini-serve to create mini-vllm. Run the full break-it list.
+                    Ship reports/project1.md with G1-G5.
+```
+
+**Reference order when you get stuck:**
+1. The topic's own `CONCEPTS.md` (every L4 topic has 100-200 lines of depth)
+2. Kiely Ch 5 §subsection that matches the topic
+3. Reddi *Efficient AI* or *Model Optimizations*
+4. Engine source code (vLLM's `block_manager_v2.py`, SGLang's `radix_cache.py`, etc.)
+
+**This is the densest level.** 14 topics. Take the full week. Don't skim — paged KV cache (Topic 10) is the single most important data structure in modern LLM serving, and you need to internalize it.
 
 ## Week goal
 

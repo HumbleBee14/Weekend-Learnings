@@ -4,6 +4,117 @@ This is NOT PyTorch. This is about the **systems** built on top of PyTorch to tr
 
 **Prerequisite:** Complete `python-pytorch/` Levels 1–7 first. You need to have built a transformer, trained it, and profiled it before touching this.
 
+## Reference texts (read alongside this curriculum)
+
+This repo is the **main guide** — opinionated, project-anchored, LLM-frontier-focused (2026). Three external sources sit next to it as authoritative references. Read the relevant chapter first when starting a new level, then come back here to build the project.
+
+```
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │              this repo (project-first 2026 lab)                 │
+  │     build mini-serve, mini-vllm, engine-bakeoff, mini-platform  │
+  │                                                                 │
+  └────────┬──────────────────┬──────────────────┬─────────────────-┘
+           │                  │                  │
+   academic foundations   production reality   primary sources
+   ──────────────────     ───────────────────  ────────────────
+   Reddi (MIT Press)      Kiely (Baseten)      vLLM/SGLang/TRT-LLM
+   textbook-grade         practitioner-grade   the actual code
+   concepts + Vol 1 / 2   field-current 2026   you'll be running
+```
+
+### Primary reference A — *Machine Learning Systems* (Reddi, Harvard / MIT Press 2026)
+
+- **Book:** [mlsysbook.ai](https://mlsysbook.ai/) — free, open-access, MIT Press print edition 2026
+- **Repo:** [harvard-edge/cs249r_book](https://github.com/harvard-edge/cs249r_book) — book source + `tinytorch/` + `labs/` + `kits/` + `mlsysim/`
+- **Author:** Vijay Janapa Reddi (Harvard CS249r) + community
+- **Flavor:** Academic, textbook-grade. Two volumes spanning the entire ML systems lifecycle (single-machine through datacenter-scale).
+- **What it gives you we don't:** Systematic coverage of the *foundations* — the ML systems lifecycle, data engineering, frameworks design, hardware acceleration taxonomy, MLOps, responsible AI, sustainable AI, edge intelligence. Vol 1 (Build/Optimize/Deploy, 1–8 GPU); Vol 2 (Scale/Distribute/Govern at production scale).
+- **How to use it:** When you want the canonical, citation-grade explanation of a concept (*what is* a roofline? *what is* MLOps? *why does* data engineering matter?). Their `tinytorch/` is a great parallel exercise to your Level 2.
+
+### Primary reference B — *Inference Engineering* (Kiely, Baseten, December 2025)
+
+- **Book:** Philip Kiely, *Inference Engineering*, 259 pages, Dec 2025 (revised April 2026)
+- **Local copy:** [`references/Inference-Engineering-Kiely-2025.pdf`](references/Inference-Engineering-Kiely-2025.pdf)
+- **Author:** Philip Kiely, Head of Developer Relations at [Baseten](https://baseten.co) — they ship production inference for real customers, real SLAs, real $/Mtok pressure.
+- **Flavor:** Practitioner, production-grade. The book that explains how 2026 inference infra is actually built and run, not just modeled.
+- **What it gives you we don't:** A field-current narrative across the inference path — model mechanics → hardware (Hopper / Ada / Blackwell / Rubin) → software (vLLM / SGLang / TRT-LLM / Dynamo) → techniques (quant / spec decode / paged KV / disaggregation) → modalities (VLM / embedding / ASR / TTS / image / video gen) → production (autoscaling, multi-cloud, GPU procurement, observability). The 47-page glossary and 26-page curated reading list are genuinely useful references on their own.
+- **How to use it:** When you want the *practitioner's view* of why an inference stack looks the way it does. Cross-cuts Levels 1, 4, 5, and 7 — read the corresponding chapter before each.
+- **Caveat:** Section 7.6 is "Production Inference with Baseten" — fair given the author, but read it as a vendor case study, not neutral comparison.
+
+### Primary reference C — Inference engine source (the systems themselves)
+
+- **vLLM:** [vllm-project/vllm](https://github.com/vllm-project/vllm) + the PagedAttention paper (Kwon et al. 2023)
+- **SGLang:** [sgl-project/sglang](https://github.com/sgl-project/sglang) + RadixAttention paper
+- **TensorRT-LLM:** [NVIDIA/TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM)
+- **llama.cpp:** [ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp)
+- **NVIDIA Dynamo / llm-d:** the disaggregated-serving production frontier
+- **NVIDIA Triton Inference Server:** [triton-inference-server/server](https://github.com/triton-inference-server/server) — the framework-agnostic outer wrapper
+
+These are not "supplementary reading" — they are the systems you'll be benchmarking and deploying. The READMEs in `level-5-production-engines/` link the exact source files to read.
+
+### Mapping — both books → this repo
+
+| Topic | Reddi (academic) | Kiely (practitioner) | This repo (lab) |
+|---|---|---|---|
+| Inference engineering as a discipline | — | Ch 0, Preface | Top-level README, Level 1 intro |
+| TTFT / ITL / latency percentiles / online vs offline | — | Ch 1 (§1.4) | Level 1 Topic 04, 05 |
+| LLM mechanics (attention, MoE, KV) | Vol 1 DL Primer | Ch 2 (§2.1–2.2) | python-pytorch/ prereq + Level 4 |
+| Arithmetic intensity / ops:byte / roofline | Vol 1 Benchmarking | Ch 2 (§2.4) | Level 3 Topic 04 (roofline) |
+| GPU architectures (Hopper / Ada / Blackwell / Rubin) | Vol 1 AI Acceleration | Ch 3 | Level 2 + Level 9 Topic 05 |
+| MIG / multi-GPU instances | — | Ch 3 (§3.3) | Level 7 Topic 10 (autoscaling), Level 6 |
+| Local inference (desktop/mobile) | Vol 2 Edge Intelligence | Ch 3 (§3.5) | Level 8 (full level) |
+| CUDA / kernels / fusion | Vol 1 AI Acceleration | Ch 4 (§4.1) | Level 2 + sibling `compiler-and-kernels/` |
+| PyTorch / model file formats / ONNX / TRT runtime | Vol 1 AI Frameworks | Ch 4 (§4.2) | Level 5 Topic 13 |
+| Inference engines (vLLM / SGLang / TRT-LLM) | Vol 1 Serving | Ch 4 (§4.3) | **Level 5 Topics 01–07** |
+| NVIDIA Dynamo | Vol 2 Distributed Inference | Ch 4 (§4.4) | Level 5 Topic 09 |
+| Benchmarking / profiling | Vol 1 Benchmarking | Ch 4 (§4.5) | Level 3 + Level 5 Topic 07 (bake-off) |
+| Quantization (FP8 / FP4 / INT4 / approaches) | Vol 1 Efficient AI | Ch 5 (§5.1) | **Level 4 Topics 01–05** |
+| Speculative decoding (draft/Medusa/EAGLE/n-gram) | Vol 1 Model Optimizations | Ch 5 (§5.2) | Level 4 Topic 13 + Level 5 Topic 12 |
+| Prefix caching / KV reuse / cache-aware routing | — | Ch 5 (§5.3) | Level 4 Topic 11 + Level 7 Topic 06 |
+| KV cache placement / tiering / LMCache | — | Ch 5 (§5.3.2) | Level 7 Topic 12 |
+| Long context handling | — | Ch 5 (§5.3.4) | Level 4 Topic 12 |
+| Tensor / expert / multi-node parallelism (inference) | Vol 2 Distributed Training | Ch 5 (§5.4) | Level 5 + Level 6 (training side) |
+| Disaggregated prefill/decode (incl. Dynamic) | Vol 2 Distributed Inference | **Ch 5 (§5.5)** | **Level 5 Topic 08–09** |
+| VLM / omni-modal | — | Ch 6 (§6.1) | Level 5 Topic 14 |
+| Embedding models | — | Ch 6 (§6.2) | Level 5 Topic 13 (ORT bench) |
+| ASR / TTS / speech-to-speech | — | Ch 6 (§6.3–6.4) | *not currently covered — Kiely fills this* |
+| Image generation (DiT, few-step, kernel opts) | — | Ch 6 (§6.5) | *not currently covered — Kiely fills this* |
+| Video generation (context parallelism for video) | — | Ch 6 (§6.6) | *not currently covered — Kiely fills this* |
+| Containerization / NIMs / dependency mgmt | Vol 1 MLOps | Ch 7 (§7.1) | Level 7 (cross-cutting) |
+| Autoscaling / cold starts / scale-to-zero | Vol 2 Ops at Scale | Ch 7 (§7.2) | **Level 7 Topics 10–11** |
+| Routing / load balancing / queueing | — | Ch 7 (§7.2.3) | Level 7 Topic 06–08 |
+| Multi-cloud / GPU procurement / geo LB / reliability | Vol 2 Ops at Scale | Ch 7 (§7.3) | Level 7 Topic 13 (cost) + CAPACITY-PLANNING.md |
+| Zero-downtime deploy / cost estimation / observability | Vol 1 MLOps + Vol 2 | Ch 7 (§7.4) | Level 7 Topic 05, 13 |
+| Client-side latency / streaming / async inference | — | Ch 7 (§7.5) | Level 1 Topic 02 (streaming) |
+| Training side (FSDP, 3D/5D parallelism, RLHF) | Vol 2 Distributed Training | *not covered* | Level 6 (full level) |
+| Edge / TinyML / on-device (Apple Silicon depth) | Vol 2 Edge Intelligence | Ch 3 §3.5 (brief) | **Level 8 (full level)** |
+| Compiler stack (MLIR / Inductor / StableHLO) | Vol 1 AI Acceleration | *not covered* | Level 9 + sibling `compiler-and-kernels/` |
+
+### The rule of thumb
+
+- **Reddi** for the *concept* (citation-grade framing of what a thing is and why it matters)
+- **Kiely** for the *production view* (what an inference engineer actually does with the thing in 2026)
+- **This repo** for the *lab* (build it, break it, measure it, ship a report)
+
+If you can't explain a topic in textbook framing, defend it in practitioner framing, *and* implement it in project framing, you don't know it yet. The three views are different muscles.
+
+### When to read which (by level)
+
+| Level | Primary read before starting |
+|---|---|
+| Level 1 (Inference Serving) | **Kiely Ch 0–1** (the discipline + the prerequisites) — then build |
+| Level 2 (CUDA/GPU) | Reddi *AI Acceleration* + Kiely Ch 3 (hardware) |
+| Level 3 (Profiling) | Reddi *Benchmarking* + Kiely §4.5 |
+| Level 4 (LLM Optimization) | **Kiely Ch 5** (techniques) + Reddi *Efficient AI / Model Optimizations* |
+| Level 5 (Production Engines) | **Kiely Ch 4 + Ch 5.5** (engines + disaggregation) — strongest fit |
+| Level 6 (Distributed Training) | Reddi Vol 2 *Distributed Training* (Kiely doesn't cover training) |
+| Level 7 (ML Platform) | **Kiely Ch 7** (production) + Reddi Vol 2 *Ops at Scale* |
+| Level 8 (Local / On-device) | Reddi *Edge Intelligence* + Kiely §3.5 (brief) — your repo is the depth here |
+| Level 9 (Compiler Awareness) | Reddi *AI Acceleration* — Kiely doesn't go here |
+
+---
+
 ## Who needs this
 
 This curriculum is for the curiosity-driven learner who wants to *understand* how modern LLM systems actually work — by building each layer themselves.
@@ -305,6 +416,7 @@ The week the original curriculum was missing. Now that you've built a server and
 | 10 | multi-lora-serving | Train tiny LoRAs, hot-swap them via vLLM's multi-LoRA endpoint |
 | 11 | offline-batch-inference | vLLM offline mode for million-doc scoring jobs |
 | 12 | speculative-decoding-in-prod | EAGLE-3 in vLLM V1, measure end-to-end gain |
+| 15 | triton-inference-server | Framework-agnostic outer wrapper — host vLLM + ORT + TRT in one server; ensemble graphs; the foundation of NVIDIA NIM |
 
 **Outcome:** You can pick the right engine for a workload, tune its flags, and serve dozens of fine-tunes off one base model. This week is where the inference-engineering field's center of gravity sits.
 
