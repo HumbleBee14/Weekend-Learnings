@@ -530,6 +530,29 @@ The other half of the field. Datacenter inference is one side; local-first AI (a
 
 ---
 
+### Level 10 — ML Systems Design Capstone (integration & interview)
+
+The final level isn't a new substrate — it's where everything from Levels 1–9 turns into **design judgment**. Eight canonical interview-shaped prompts that real senior ML systems engineers face: *"Design Bedrock-equivalent."* *"Design a chatbot at 10K QPS."* *"Design multi-LoRA for 500 fine-tunes."* *"Design the inference platform for a 5-engineer startup."* Each prompt has a `PROMPT.md` (read cold, 45-min timer), a `SOLUTION.md` (a defensible worked design with capacity math, break-it list, and 10× scale story), and a `RUBRIC.md` (what an interviewer grades on).
+
+Why this level exists: there's no public curriculum for the *integration muscle*. Books cover concepts; courses cover techniques; but defending an end-to-end design under questioning is its own skill. This level is your gym.
+
+| # | Prompt | Levels it pulls in |
+|---|---|---|
+| 01 | Design Bedrock / Vertex-AI-Inference equivalent | L1 + L5 + L7 |
+| 02 | Chatbot at 10K QPS, p99 < 2s | L4 + L5 + L7 |
+| 03 | Multi-LoRA serving for 500 fine-tunes | L4 + L5.10 + L7 |
+| 04 | Inference platform for a 5-engineer startup | L1 + L5 + L7 + L7.11b |
+| 05 | RAG-shaped retrieval + inference service | L5.13 + L5.15 + L7 |
+| 06 | Reasoning model (o1-class) serving | L4.12 + L5 + L7.15 |
+| 07 | Distributed training platform for a 70B model | L6 (full) |
+| 08 | Local-first agentic IDE backend (Cursor's local mode) | L8 (full) |
+
+**Outcome:** the design intuition that wins senior ML systems interviews — and that you'll exercise on your first day building a real platform.
+
+**Compute:** None. Paper + whiteboard + maybe Excalidraw.
+
+---
+
 ## How to use compute wisely
 
 ```

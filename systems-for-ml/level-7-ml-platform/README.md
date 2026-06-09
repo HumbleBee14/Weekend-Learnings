@@ -84,6 +84,7 @@ Other things that have hardened:
 | 09 | scheduling-policies | FCFS vs priority vs SJF — measure p99 |
 | 10 | autoscaling-keda | Scale on queue depth + queue latency |
 | 11 | cold-start-and-warmup | Pre-warmed pools, model streamer, CRIU |
+| 11b | serverless-gpu-substrates | The Modal/RunPod/Replicate/Beam alternative — when to delegate cold-start ownership to a PaaS, when to own the K8s yourself, where the crossover sits |
 | 12 | kv-tiering-lmcache | LMCache HBM→DRAM→NVMe; long-context viability; cross-replica KV coherence + transfer protocols |
 | 13 | cost-economics | $/Mtok per engine + quant; FinOps for AI |
 | 14 | safety-and-abuse | Rate limit, prompt injection, output filtering |

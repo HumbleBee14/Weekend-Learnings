@@ -51,6 +51,7 @@ After `--load-format runai_streamer` the `model_load_done` row should drop ~40-6
 ## Where this goes
 
 - Topic 10: KEDA's reaction time is dominated by these phases. Together they fix scale-up's worst case.
+- **Topic 11b** (`serverless-gpu-substrates`): what cold-start ownership looks like when you *delegate* it to Modal/RunPod/Replicate/Beam instead of owning it on K8s. Same seven phases, different owner — and the PaaS often does it better via GPU memory snapshotting.
 - Topic 12: LMCache's persistent KV tier means a cold-started replica can re-acquire prefix KV without re-prefilling — a different kind of warmup.
 - Topic 13: cold pool of `minReplicas` is a $/Mtok line item; quantify it.
 
