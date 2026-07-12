@@ -25,8 +25,10 @@ This repo is the **main guide** — opinionated, project-anchored, LLM-frontier-
 
 ### Primary reference A — *Machine Learning Systems* (Reddi, Harvard / MIT Press 2026)
 
-- **Book:** [mlsysbook.ai](https://mlsysbook.ai/) — free, open-access, MIT Press print edition 2026
-- **Repo:** [harvard-edge/cs249r_book](https://github.com/harvard-edge/cs249r_book) — book source + `tinytorch/` + `labs/` + `kits/` + `mlsysim/`
+- **Book:** [mlsysbook.ai](https://mlsysbook.ai/) — free, open-access; Vol 1 MIT Press 2026, Vol 2 MIT Press 2027 (early draft)
+- **Repo:** [harvard-edge/cs249r_book](https://github.com/harvard-edge/cs249r_book) — book source + `tinytorch/` + `labs/` + `kits/` + `mlsysim/` + official 16-week syllabi under `instructors/`
+- **Local copies:** [`references/Machine-Learning-Systems-Vol1-Reddi.pdf`](references/Machine-Learning-Systems-Vol1-Reddi.pdf), [`references/Machine-Learning-Systems-Vol2-Reddi.pdf`](references/Machine-Learning-Systems-Vol2-Reddi.pdf)
+- **Grounded index:** [`references/mlsysbook-index.md`](references/mlsysbook-index.md) — exact chapter TOCs for both volumes, lab pairings, TinyTorch modules, per-level mapping with case-study papers. **Use it over the rough table below** — it was verified against the book source (July 2026).
 - **Author:** Vijay Janapa Reddi (Harvard CS249r) + community
 - **Flavor:** Academic, textbook-grade. Two volumes spanning the entire ML systems lifecycle (single-machine through datacenter-scale).
 - **What it gives you we don't:** Systematic coverage of the *foundations* — the ML systems lifecycle, data engineering, frameworks design, hardware acceleration taxonomy, MLOps, responsible AI, sustainable AI, edge intelligence. Vol 1 (Build/Optimize/Deploy, 1–8 GPU); Vol 2 (Scale/Distribute/Govern at production scale).
@@ -42,7 +44,15 @@ This repo is the **main guide** — opinionated, project-anchored, LLM-frontier-
 - **How to use it:** When you want the *practitioner's view* of why an inference stack looks the way it does. Cross-cuts Levels 1, 4, 5, and 7 — read the corresponding chapter before each.
 - **Caveat:** Section 7.6 is "Production Inference with Baseten" — fair given the author, but read it as a vendor case study, not neutral comparison.
 
-### Primary reference C — Inference engine source (the systems themselves)
+### Primary reference C — *Modern GPU Programming for MLSys* (MLC community, 2026)
+
+- **Book:** [mlc.ai/modern-gpu-programming-for-mlsys](https://mlc.ai/modern-gpu-programming-for-mlsys/) — open-access online textbook, MLC community (CMU / TVM lineage)
+- **Author / lineage:** MLC community — the same group behind TVM, MLC-LLM, and the CMU 10-414/10-714 ML systems course line.
+- **Flavor:** Kernel-track, hands-on, Blackwell-era. Structured as four parts: (I) GPU architecture & execution — 9 chapters (II) TIRx programming framework (III) GEMM optimization progression — 9 documented steps (IV) FlashAttention 4 implementation.
+- **What it gives you the others don't:** The *inside* of a modern kernel. Reddi tells you *what* a GEMM is; Kiely tells you *when* it dominates $/Mtok; this book walks you from a naive matmul to state-of-the-art in nine visible steps, on Blackwell hardware, in a Python DSL you can actually run.
+- **How to use it:** Pair with **Level 2** (CUDA/GPU) for the architecture chapters, and with the sibling `compiler-and-kernels/` module for the GEMM and FA4 walkthroughs. Not required reading for the inference-track levels (1, 5, 7) — those stay Kiely-first.
+
+### Primary reference D — Inference engine source (the systems themselves)
 
 - **vLLM:** [vllm-project/vllm](https://github.com/vllm-project/vllm) + the PagedAttention paper (Kwon et al. 2023)
 - **SGLang:** [sgl-project/sglang](https://github.com/sgl-project/sglang) + RadixAttention paper
@@ -104,7 +114,7 @@ If you can't explain a topic in textbook framing, defend it in practitioner fram
 | Level | Primary read before starting |
 |---|---|
 | Level 1 (Inference Serving) | **Kiely Ch 0–1** (the discipline + the prerequisites) — then build |
-| Level 2 (CUDA/GPU) | Reddi *AI Acceleration* + Kiely Ch 3 (hardware) |
+| Level 2 (CUDA/GPU) | Reddi *AI Acceleration* + Kiely Ch 3 (hardware) + **MLC *Modern GPU Programming* Part I** (architecture) |
 | Level 3 (Profiling) | Reddi *Benchmarking* + Kiely §4.5 |
 | Level 4 (LLM Optimization) | **Kiely Ch 5** (techniques) + Reddi *Efficient AI / Model Optimizations* |
 | Level 5 (Production Engines) | **Kiely Ch 4 + Ch 5.5** (engines + disaggregation) — strongest fit |
