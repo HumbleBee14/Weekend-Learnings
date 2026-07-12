@@ -115,6 +115,10 @@ If you can't explain a topic in textbook framing, defend it in practitioner fram
 
 ---
 
+## Start here
+
+If you're new to this repo, open [`START-HERE.md`](START-HERE.md) — it's the concrete learning + publishing plan we're following (three of us in a Discord group learning together and posting what we understand at [mlsystems.dev](https://mlsystems.dev), topic by topic, at whatever pace lets us truly understand what we're writing).
+
 ## Who needs this
 
 This curriculum is for the curiosity-driven learner who wants to *understand* how modern LLM systems actually work — by building each layer themselves.
