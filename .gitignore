@@ -76,3 +76,4 @@ Thumbs.db
 .env
 .env.local
 python-pytorch/plan.md
+CLAUDE.local.md
