@@ -2,6 +2,25 @@
 
 A personal notebook for trying new things, refreshing fundamentals, and keeping all learning notes in one place.
 
+## Shared Python environment
+
+All Python tracks use one shared virtualenv at the repo root (Python 3.12).
+
+```bash
+# one time
+python3 -m venv .venv
+source .venv/bin/activate
+
+# install a track's deps when you start it, e.g. post-training:
+pip install -r post-training/level-0-day-1-end-to-end/requirements.txt
+# on Apple Silicon, also:  pip install mlx-lm
+
+# every session after: just activate
+source .venv/bin/activate
+```
+
+`.venv/` is gitignored.
+
 
 
 ```                       

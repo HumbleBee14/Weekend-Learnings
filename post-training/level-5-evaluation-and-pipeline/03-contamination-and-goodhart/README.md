@@ -1,0 +1,7 @@
+# Contamination & Goodhart
+
+Detecting benchmark leakage; why chasing a metric corrupts it; time-windowed benchmarks.
+
+---
+Status: outline — depth (CONCEPTS.md) and runnable code arrive when we build this level.
+Launcher: [level README](../README.md) · Track map: [post-training](../../README.md)

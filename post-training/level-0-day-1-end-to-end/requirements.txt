@@ -1,0 +1,17 @@
+# Level 0 — dependencies
+#
+# Cloud / CUDA path (Colab, RunPod, Lambda, any NVIDIA GPU):
+transformers
+datasets
+accelerate
+peft
+trl
+torch
+# bitsandbytes        # optional — only if you switch train_cloud.py to QLoRA (Linux+CUDA)
+#
+# Mac / Apple Silicon path — instead of the CUDA torch stack, install:
+#   pip install mlx-lm
+# (transformers + torch are still used by evaluate.py; torch runs on MPS.)
+#
+# Tip: the data + eval scripts (gen_data.py, task.py) need nothing but Python +
+# transformers/torch. Only train_cloud.py needs trl/peft/datasets.
