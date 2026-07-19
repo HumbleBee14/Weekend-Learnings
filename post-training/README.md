@@ -80,9 +80,24 @@ JSON                  JSON         over broken JSON     a verified reward
         the SAME small model, the SAME eval, three lenses
 ```
 
-## Setup & running
+## How to read this track
 
-All tracks share one virtualenv at the repo root.
+Build first, connect the dots after. The path:
+
+```
+1. THIS page, top to bottom            ← the map: when to post-train, the methods, the pillars
+2. Level 0 — DO it                     ← read THE-30-MINUTE-MAP.md, then run the four steps
+                                          in the runbook. ~1 hour, ends with a real trained model.
+3. Level 0 — MEMORY-ANATOMY.md         ← after your run: what actually happened in memory
+4. Levels 1→5, in order                ← each level's README is the only entry point you need;
+                                          it tells you what to read and build inside it
+```
+
+Every level has **one README that is the whole guide for that level** — you never need to guess which file to open next; each README ends by pointing to the next thing.
+
+### Setup (shared, once)
+
+All tracks share one virtualenv at the repo root:
 
 ```bash
 # from repo root, one time:
@@ -90,7 +105,7 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r post-training/level-0-day-1-end-to-end/requirements.txt   # + `pip install mlx-lm` on Apple Silicon
 ```
 
-Then follow the **[Level 0 runbook](level-0-day-1-end-to-end/README.md)** — exact commands, both backends, end to end. Every session after: `source .venv/bin/activate`.
+Every session after: `source .venv/bin/activate`.
 
 ## The levels
 
